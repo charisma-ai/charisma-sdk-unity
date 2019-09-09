@@ -8,7 +8,7 @@ namespace CharismaSDK
     {
         public enum Encoding
         {
-            Mp3,
+            Wav,
             Ogg
         }
 
@@ -38,7 +38,7 @@ namespace CharismaSDK
             {
                 switch (_encoding)
                 {
-                    case Encoding.Mp3:
+                    case Encoding.Wav:
                         return "mp3";                        
                     case Encoding.Ogg:
                         return "ogg";                                            
