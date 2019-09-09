@@ -176,7 +176,7 @@ namespace CharismaSDK
         
         #region Delegates
 
-        public delegate void StoryEventDelegate(Response response, AudioClip responseAudio, string audioUrl);
+        public delegate void StoryEventDelegate(Response response, AudioClip clip, string url);
         public delegate void CharismaEventDelegate();
         public delegate void TokenEventDelegate(string token);
         public delegate void ConversationEventDelegate(int conversationId);
@@ -187,11 +187,30 @@ namespace CharismaSDK
         #endregion
         
         #region Events
-
+        
+        /// <summary>
+        /// A new response has been received
+        /// </summary>
         public event StoryEventDelegate OnReceivedResponse;
+        
+        /// <summary>
+        /// Successfully connected to the server
+        /// </summary>
         public event CharismaEventDelegate OnConnected;
+        
+        /// <summary>
+        /// Successfully set memory
+        /// </summary>
         public event CharismaEventDelegate OnMemorySet;
+        
+        /// <summary>
+        /// Successfully generated a token
+        /// </summary>
         public event TokenEventDelegate OnTokenReceived;
+        
+        /// <summary>
+        /// Successfully initialised a conversation
+        /// </summary>
         public event ConversationEventDelegate OnConversationInitialised;        
         
         #endregion
@@ -327,12 +346,18 @@ namespace CharismaSDK
                     }
                     else
                     {
-                        // TODO: Move to task based system
                         ExecuteOnMainThread.Enqueue(() =>
                         {
                             StartCoroutine(GenerateAudio(Response));                           
                         });             
                     }
+                else
+                {
+                    ExecuteOnMainThread.Enqueue(() =>
+                    {
+                        SendReceivedResponse();                     
+                    });                   
+                }
                 
                 // We are done processing this response
                 _isProcessing = false;           
@@ -436,7 +461,7 @@ namespace CharismaSDK
 
 
         /// <summary>
-        /// Send a tap event to Charisma
+        /// Send a tap event to Charisma.
         /// </summary>
         public void Tap()
         {
@@ -449,13 +474,53 @@ namespace CharismaSDK
             var tapOptions = new TapOptions(Conversation, SpeechOptions);
             _socket?.Emit("tap", tapOptions);
             
-            //Debug.Log("Charisma: Tap");
+            if(_showLog)
+                Debug.Log("Charisma: Tap");
+        }
+        
+        /// <summary>
+        /// Send a tap event to Charisma.
+        /// </summary>
+        /// <param name="speech">Set true if the next response should contain speech</param>
+        public void Tap(bool speech)
+        {
+            if (_socket == null)
+            {
+                Debug.LogError("Charisma: Socket not open. Connect before sending commands");
+                return;
+            };
+                       
+            var tapOptions = speech ? new TapOptions(Conversation, SpeechOptions) : new TapOptions(Conversation);
+            _socket?.Emit("tap", tapOptions);
+            
+            if(_showLog)
+                Debug.Log("Charisma: Tap");
         }
 
         /// <summary>
-        /// Set a memory in Charisma
+        /// Send a tap event to Charisma.
         /// </summary>
-        /// <param name="memory">The memory to be set. Needs to have the same Key as the corresponding memory in Charisma</param>
+        /// <param name="speech">Set true if the next response should contain speech.</param>
+        /// <param name="conversation">Conversation to sent tap to.</param>
+        public void Tap(bool speech, Conversation conversation)
+        {
+            if (_socket == null)
+            {
+                Debug.LogError("Charisma: Socket not open. Connect before sending commands");
+                return;
+            };
+                       
+            var tapOptions = speech ? new TapOptions(conversation, SpeechOptions) : new TapOptions(conversation);
+            _socket?.Emit("tap", tapOptions);
+            
+            if(_showLog)
+                Debug.Log("Charisma: Tap");
+        }
+
+        /// <summary>
+        /// Set a memory in Charisma.
+        /// </summary>
+        /// <param name="memory">The memory to be set. Needs to have the same Key as the corresponding memory in Charisma.</param>
         public void SetMemory(Memory memory)
         {
             StartCoroutine(AttemptSetMemory(memory));
@@ -479,8 +544,6 @@ namespace CharismaSDK
             request.UseAlternateSSL = true;
             request.Send();
 			
-            
-
             while (request.State != HTTPRequestStates.Finished)
                 yield return null;
 
@@ -490,24 +553,21 @@ namespace CharismaSDK
                 OnMemorySet?.Invoke();
             }
             else
-                Debug.Log(request.Exception);
-                      
+                Debug.Log(request.Exception);                      
         }
-        
-        
+                
         /// <summary>
         /// Set mood in Charisma. 
         /// </summary>
         public void SetMood()
         {
-            // TODO: Move to post request
-    
+            // TODO: Move to post request  
         }
 
         /// <summary>
-        /// Send player message to Charisma
+        /// Send player message with speech to Charisma
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="message">Message to send</param>
         public void SendPlayerMessage(string message)
         {
             if (_socket == null)
@@ -525,15 +585,16 @@ namespace CharismaSDK
             var playerMessage = new PlayerMessage(message, SpeechOptions, Conversation.conversationId);
             _socket?.Emit("reply", playerMessage);		
 			
-            //Debug.Log("Charisma: Sending player message");
+            if(_showLog)
+                Debug.Log("Charisma: Sending player message");
         }
 
         /// <summary>
         /// Send player message to Charisma
         /// </summary>
-        /// <param name="message"></param>
-        /// <param name="conversation"></param>
-        public void SendPlayerMessage(string message, Conversation conversation)
+        /// <param name="message">Message to send</param>
+        /// <param name="speech">Set true if the next response should contain speech</param>
+        public void SendPlayerMessage(string message, bool speech)
         {
             if (_socket == null)
             {
@@ -546,23 +607,55 @@ namespace CharismaSDK
                 Debug.LogWarning("Charisma: Cannot send player message when Charisma is processing");
                 return;
             }
-            			
-            var playerMessage = new PlayerMessage(message, SpeechOptions, conversation.conversationId);
-            _socket?.Emit("reply", playerMessage);		
-			
-            //Debug.Log("Charisma: Sending player message");
+            
+            var playerMessage = speech
+                ? new PlayerMessage(message, SpeechOptions, Conversation.conversationId)
+                : new PlayerMessage(message, Conversation.conversationId);
+            _socket?.Emit("reply", playerMessage);
+                
+            if(_showLog)
+                Debug.Log("Charisma: Sending player message");
+        }
+
+        /// <summary>
+        /// Send player message to Charisma
+        /// </summary>
+        /// <param name="message">Message to send</param>
+        /// <param name="speech">Set true if the next response should contain speech</param>
+        /// <param name="conversation">Conversation to interact with</param>
+        public void SendPlayerMessage(string message, bool speech, Conversation conversation)
+        {
+            if (_socket == null)
+            {
+                Debug.LogError("Charisma: Socket not open. Connect before sending player message");
+                return;
+            };
+
+            if (_isProcessing)
+            {
+                Debug.LogWarning("Charisma: Cannot send player message when Charisma is processing");
+                return;
+            }
+
+            var playerMessage = speech
+                ? new PlayerMessage(message, SpeechOptions, conversation.conversationId)
+                : new PlayerMessage(message, conversation.conversationId);
+            _socket?.Emit("reply", playerMessage);
+                
+            if(_showLog)
+                Debug.Log("Charisma: Sending player message");  
         }
         
         #endregion
 
         #region Audio
 
-        // Generate Audio
         private IEnumerator GenerateAudio(Response response)
         {
             if (SpeechOptions.encoding == "mp3")
             {
-                Debug.Log("Charisma: Generating audio");
+                if(_showLog)
+                    Debug.Log("Charisma: Generating audio");
             
                 var tempFile = Application.persistentDataPath + "/bytes.mp3";
                 
@@ -582,7 +675,8 @@ namespace CharismaSDK
             }
             else
             {
-                Debug.Log("Charisma: Generating audio");
+                if(_showLog)
+                    Debug.Log("Charisma: Generating audio");
             
                 var tempFile = Application.persistentDataPath + "/bytes.ogg";
 
@@ -607,16 +701,16 @@ namespace CharismaSDK
         #region Termination
 
         private void OnApplicationQuit()
-        {
-            if (_socket == null) return;
-            if (_socketManager == null) return;
-            
+        {           
             Disconnect();
         }
 
-        // Disconnect from the current interaction
+        // Disconnect from the current interaction.
         public void Disconnect()
         {
+            if (_socket == null) return;
+            if (_socketManager == null) return;            
+            
             try
             {
                 _socket.Disconnect();

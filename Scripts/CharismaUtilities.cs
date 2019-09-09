@@ -44,7 +44,7 @@ namespace CharismaSDK
         #endregion
         
         /// <summary>
-        /// Convert token response to token
+        /// Convert token response to token.
         /// </summary>
         /// <param name="tokenResponse">JSON payload</param>
         /// <returns></returns>
@@ -88,7 +88,7 @@ namespace CharismaSDK
         }
 
         /// <summary>
-        /// Generate a Charisma response from the response string
+        /// Generate a Charisma response from the response string.
         /// </summary>
         /// <param name="charismaResponse">JSON payload</param>
         /// <returns></returns>
@@ -99,7 +99,7 @@ namespace CharismaSDK
         }
         
         /// <summary>
-        /// Convert a memory to Json
+        /// Convert a memory to Json.
         /// </summary>
         /// <returns></returns>
         public static string MemoryToJson(Memory memory)

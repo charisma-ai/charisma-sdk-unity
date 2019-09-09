@@ -1,8 +1,11 @@
-﻿using System;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace CharismaSDK
-{    public class Conversation
+{    
+    /// <summary>
+    /// Instance of a conversation.
+    /// </summary>
+    public class Conversation
     {
         public int conversationId;
         

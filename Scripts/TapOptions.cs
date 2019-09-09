@@ -10,5 +10,11 @@
             this.conversationId = conversation.ConversationId;
             this.speechConfig = speechConfig;
         }
+
+        public TapOptions(Conversation conversation)
+        {
+            this.conversationId = conversation.ConversationId;
+            this.speechConfig = null;
+        }
     }
 }

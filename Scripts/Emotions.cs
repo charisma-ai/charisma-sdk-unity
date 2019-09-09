@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace CharismaSDK
 {
+    /// <summary>
+    /// The current emotions of this character
+    /// </summary>
     public class Emotions
     {
         [Header("Low = sad, High = happy")]
