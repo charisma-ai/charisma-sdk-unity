@@ -126,7 +126,7 @@ namespace BestHTTP
                                     if (!string.IsNullOrEmpty(authentication))
                                     {
                                         string auth = string.Format("Proxy-Authorization: {0}", authentication);
-                                        if (HTTPManager.Logger.Level <= Logger.Loglevels.Information)
+                                        if (HTTPManager.Logger.Levels <= Logger.Loglevels.Information)
                                             HTTPManager.Logger.Information("HTTPConnection", "Sending proxy authorization header: " + auth);
 
                                         outStream.Write(auth.GetASCIIBytes());
@@ -149,7 +149,7 @@ namespace BestHTTP
                     if (!request.ProxyResponse.Receive(-1, true))
                         throw new Exception("Connection to the Proxy Server failed!");
 
-                    if (HTTPManager.Logger.Level <= Logger.Loglevels.Information)
+                    if (HTTPManager.Logger.Levels <= Logger.Loglevels.Information)
                         HTTPManager.Logger.Information("HTTPConnection", "Proxy returned - status code: " + request.ProxyResponse.StatusCode + " message: " + request.ProxyResponse.Message + " Body: " + request.ProxyResponse.DataAsText);
 
                     switch (request.ProxyResponse.StatusCode)

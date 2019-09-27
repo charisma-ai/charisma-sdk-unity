@@ -26,7 +26,7 @@ namespace BestHTTP
         public WebGLConnection(string serverAddress)
             : base(serverAddress, false)
         {
-            XHR_SetLoglevel((byte)HTTPManager.Logger.Level);
+            XHR_SetLoglevel((byte)HTTPManager.Logger.Levels);
         }
 
         internal override void Abort(HTTPConnectionStates newState)
@@ -392,7 +392,7 @@ namespace BestHTTP
         private static extern void XHR_Release(int nativeId);
 
         [DllImport("__Internal")]
-        private static extern void XHR_SetLoglevel(int logLevel);
+        private static extern void XHR_SetLoglevel(int loglevels);
 
 #endregion
     }

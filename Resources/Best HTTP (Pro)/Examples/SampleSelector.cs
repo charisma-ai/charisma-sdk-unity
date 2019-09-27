@@ -70,7 +70,7 @@ public class SampleSelector : MonoBehaviour
 
     void Awake()
     {
-        HTTPManager.Logger.Level = BestHTTP.Logger.Loglevels.All;
+        HTTPManager.Logger.Levels = BestHTTP.Logger.Loglevels.All;
 
 #if UNITY_SAMSUNGTV
         SamsungTV.touchPadMode = SamsungTV.TouchPadMode.Mouse;

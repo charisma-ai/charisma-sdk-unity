@@ -298,7 +298,7 @@ namespace BestHTTP
                                         {
                                             Uri redirectUri = GetRedirectUri(location);
 
-                                            if (HTTPManager.Logger.Level == Logger.Loglevels.All)
+                                            if (HTTPManager.Logger.Levels == Logger.Loglevels.All)
                                                 HTTPManager.Logger.Verbose("HTTPConnection", string.Format("{0} - Redirected to Location: '{1}' redirectUri: '{1}'", this.CurrentRequest.CurrentUri.ToString(), location, redirectUri));
 
                                             // Let the user to take some control over the redirection
@@ -476,23 +476,23 @@ namespace BestHTTP
                     HTTPProtocolFactory.IsSecureProtocol(uri);
 #endif
 
-                if (HTTPManager.Logger.Level == Logger.Loglevels.All)
+                if (HTTPManager.Logger.Levels == Logger.Loglevels.All)
                     HTTPManager.Logger.Verbose("HTTPConnection", string.Format("'{0}' - Connecting to {1}:{2}", this.CurrentRequest.CurrentUri.ToString(), uri.Host, uri.Port.ToString()));
 
 #if !NETFX_CORE && (!UNITY_WEBGL || UNITY_EDITOR)
                 Client.SendBufferSize = HTTPManager.SendBufferSize;
                 Client.ReceiveBufferSize = HTTPManager.ReceiveBufferSize;
 
-                if (HTTPManager.Logger.Level == Logger.Loglevels.All)
+                if (HTTPManager.Logger.Levels == Logger.Loglevels.All)
                     HTTPManager.Logger.Verbose("HTTPConnection", string.Format("'{0}' - Buffer sizes - Send: {1} Receive: {2} Blocking: {3}", this.CurrentRequest.CurrentUri.ToString(), Client.SendBufferSize.ToString(), Client.ReceiveBufferSize.ToString(), Client.Client.Blocking.ToString()));
 #endif
 
                 Client.Connect(uri.Host, uri.Port);
 
-                if (HTTPManager.Logger.Level <= Logger.Loglevels.Information)
+                if (HTTPManager.Logger.Levels <= Logger.Loglevels.Information)
                     HTTPManager.Logger.Information("HTTPConnection", "Connected to " + uri.Host + ":" + uri.Port.ToString());
             }
-            else if (HTTPManager.Logger.Level <= Logger.Loglevels.Information)
+            else if (HTTPManager.Logger.Levels <= Logger.Loglevels.Information)
                     HTTPManager.Logger.Information("HTTPConnection", "Already connected to " + uri.Host + ":" + uri.Port.ToString());
 
             #endregion
@@ -576,14 +576,14 @@ namespace BestHTTP
         {
             SupportedProtocols protocol = CurrentRequest.ProtocolHandler == SupportedProtocols.Unknown ? HTTPProtocolFactory.GetProtocolFromUri(CurrentRequest.CurrentUri) : CurrentRequest.ProtocolHandler;
 
-            if (HTTPManager.Logger.Level == Logger.Loglevels.All)
+            if (HTTPManager.Logger.Levels == Logger.Loglevels.All)
                 HTTPManager.Logger.Verbose("HTTPConnection", string.Format("{0} - Receive - protocol: {1}", this.CurrentRequest.CurrentUri.ToString(), protocol.ToString()));
 
             CurrentRequest.Response = HTTPProtocolFactory.Get(protocol, CurrentRequest, Stream, CurrentRequest.UseStreaming, false);
 
             if (!CurrentRequest.Response.Receive())
             {
-                if (HTTPManager.Logger.Level == Logger.Loglevels.All)
+                if (HTTPManager.Logger.Levels == Logger.Loglevels.All)
                     HTTPManager.Logger.Verbose("HTTPConnection", string.Format("{0} - Receive - Failed! Response will be null, returning with false.", this.CurrentRequest.CurrentUri.ToString()));
                 CurrentRequest.Response = null;
                 return false;
@@ -608,7 +608,7 @@ namespace BestHTTP
 #endif
             }
 
-            if (HTTPManager.Logger.Level == Logger.Loglevels.All)
+            if (HTTPManager.Logger.Levels == Logger.Loglevels.All)
                 HTTPManager.Logger.Verbose("HTTPConnection", string.Format("{0} - Receive - Finished Successfully!", this.CurrentRequest.CurrentUri.ToString()));
 
             return true;
@@ -622,7 +622,7 @@ namespace BestHTTP
 
         private bool LoadFromCache(Uri uri)
         {
-            if (HTTPManager.Logger.Level == Logger.Loglevels.All)
+            if (HTTPManager.Logger.Levels == Logger.Loglevels.All)
                 HTTPManager.Logger.Verbose("HTTPConnection", string.Format("{0} - LoadFromCache for Uri: {1}", this.CurrentRequest.CurrentUri.ToString(), uri.ToString()));
 
             var cacheEntity = HTTPCacheService.GetEntity(uri);
@@ -664,7 +664,7 @@ namespace BestHTTP
                 // MAY return it without validation if it is fresh!
                 if (HTTPCacheService.IsCachedEntityExpiresInTheFuture(CurrentRequest))
                 {
-                    if (HTTPManager.Logger.Level == Logger.Loglevels.All)
+                    if (HTTPManager.Logger.Levels == Logger.Loglevels.All)
                         HTTPManager.Logger.Verbose("HTTPConnection", string.Format("{0} - TryLoadAllFromCache - whole response loading from cache", this.CurrentRequest.CurrentUri.ToString()));
 
                     CurrentRequest.Response = HTTPCacheService.GetFullResponse(CurrentRequest);

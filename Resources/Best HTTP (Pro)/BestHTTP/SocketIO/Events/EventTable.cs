@@ -74,7 +74,7 @@ namespace BestHTTP.SocketIO.Events
         /// </summary>
         public void Call(string eventName, Packet packet, params object[] args)
         {
-            if (HTTPManager.Logger.Level <= BestHTTP.Logger.Loglevels.All)
+            if (HTTPManager.Logger.Levels <= BestHTTP.Logger.Loglevels.All)
                 HTTPManager.Logger.Verbose("EventTable", "Call - " + eventName);
 
             List<EventDescriptor> events;

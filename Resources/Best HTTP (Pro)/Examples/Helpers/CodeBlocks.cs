@@ -321,8 +321,8 @@ namespace BestHTTP.Examples
 &nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:blue;"">void</span>&nbsp;OnError(<span style=""color:#2b91af;"">WebSocket</span>&nbsp;ws,&nbsp;<span style=""color:#2b91af;"">Exception</span>&nbsp;ex)
 &nbsp;&nbsp;&nbsp;&nbsp;{
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:blue;"">string</span>&nbsp;errorMsg&nbsp;=&nbsp;<span style=""color:blue;"">string</span>.Empty;
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:blue;"">if</span>&nbsp;(ws.InternalRequest.Response&nbsp;!=&nbsp;<span style=""color:blue;"">null</span>)
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;errorMsg&nbsp;=&nbsp;<span style=""color:blue;"">string</span>.Format(<span style=""color:#a31515;"">&quot;Status&nbsp;Code&nbsp;from&nbsp;Server:&nbsp;{0}&nbsp;and&nbsp;Message:&nbsp;{1}&quot;</span>,&nbsp;ws.InternalRequest.Response.StatusCode,&nbsp;ws.InternalRequest.Response.Message);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:blue;"">if</span>&nbsp;(ws.InternalRequest.Message&nbsp;!=&nbsp;<span style=""color:blue;"">null</span>)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;errorMsg&nbsp;=&nbsp;<span style=""color:blue;"">string</span>.Format(<span style=""color:#a31515;"">&quot;Status&nbsp;Code&nbsp;from&nbsp;Server:&nbsp;{0}&nbsp;and&nbsp;Message:&nbsp;{1}&quot;</span>,&nbsp;ws.InternalRequest.Message.StatusCode,&nbsp;ws.InternalRequest.Message.Message);
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Text&nbsp;+=&nbsp;<span style=""color:blue;"">string</span>.Format(<span style=""color:#a31515;"">&quot;-An&nbsp;error&nbsp;occured:&nbsp;{0}\n&quot;</span>,&nbsp;(ex&nbsp;!=&nbsp;<span style=""color:blue;"">null</span>&nbsp;?&nbsp;ex.Message&nbsp;:&nbsp;<span style=""color:#a31515;"">&quot;Unknown&nbsp;Error&nbsp;&quot;</span>&nbsp;+&nbsp;errorMsg));
 
@@ -426,12 +426,12 @@ namespace BestHTTP.Examples
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:green;"">//&nbsp;The&nbsp;request&nbsp;finished&nbsp;without&nbsp;any&nbsp;problem.</span>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:blue;"">case</span>&nbsp;<span style=""color:#2b91af;"">HTTPRequestStates</span>.Finished:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:blue;"">if</span>&nbsp;(request.Response.IsSuccess)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:blue;"">if</span>&nbsp;(request.Message.IsSuccess)
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;status&nbsp;=&nbsp;<span style=""color:blue;"">string</span>.Format(<span style=""color:#a31515;"">&quot;AssetBundle&nbsp;downloaded!&nbsp;Loaded&nbsp;from&nbsp;local&nbsp;cache:&nbsp;{0}&quot;</span>,&nbsp;request.Response.IsFromCache.ToString());
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;status&nbsp;=&nbsp;<span style=""color:blue;"">string</span>.Format(<span style=""color:#a31515;"">&quot;AssetBundle&nbsp;downloaded!&nbsp;Loaded&nbsp;from&nbsp;local&nbsp;cache:&nbsp;{0}&quot;</span>,&nbsp;request.Message.IsFromCache.ToString());
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:green;"">//&nbsp;Start&nbsp;creating&nbsp;the&nbsp;downloaded&nbsp;asset&nbsp;bundle</span>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:#2b91af;"">AssetBundleCreateRequest</span>&nbsp;async&nbsp;=&nbsp;<span style=""color:#2b91af;"">AssetBundle</span>.CreateFromMemory(request.Response.Data);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:#2b91af;"">AssetBundleCreateRequest</span>&nbsp;async&nbsp;=&nbsp;<span style=""color:#2b91af;"">AssetBundle</span>.CreateFromMemory(request.Message.Data);
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:green;"">//&nbsp;wait&nbsp;for&nbsp;it</span>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:blue;"">yield</span>&nbsp;<span style=""color:blue;"">return</span>&nbsp;async;
@@ -442,9 +442,9 @@ namespace BestHTTP.Examples
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:blue;"">else</span>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;status&nbsp;=&nbsp;<span style=""color:blue;"">string</span>.Format(<span style=""color:#a31515;"">&quot;Request&nbsp;finished&nbsp;Successfully,&nbsp;but&nbsp;the&nbsp;server&nbsp;sent&nbsp;an&nbsp;error.&nbsp;Status&nbsp;Code:&nbsp;{0}-{1}&nbsp;Message:&nbsp;{2}&quot;</span>,
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;request.Response.StatusCode,
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;request.Response.Message,
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;request.Response.DataAsText);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;request.Message.StatusCode,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;request.Message.Message,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;request.Message.DataAsText);
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style=""color:#2b91af;"">Debug</span>.LogWarning(status);
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
 

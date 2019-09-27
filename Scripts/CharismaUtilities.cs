@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using NAudio.Wave;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -52,7 +53,7 @@ namespace CharismaSDK
         {
             try
             {
-                var responseParams = JsonConvert.DeserializeObject<SocketResponseParams>(tokenResponse);			
+                var responseParams = JsonConvert.DeserializeObject<TokenResponseParams>(tokenResponse);			
                 return responseParams.Token;
             }
             catch (Exception e)
@@ -80,33 +81,25 @@ namespace CharismaSDK
                 throw;
             }
         }
-
-
-        public static string ConversationToJson(Conversation conversation)
-        {
-            return JsonConvert.SerializeObject(conversation);
-        }
-
+        
         /// <summary>
         /// Generate a Charisma response from the response string.
         /// </summary>
         /// <param name="charismaResponse">JSON payload</param>
         /// <returns></returns>
-        public static Response GenerateResponse(string charismaResponse)
+        public static async Task<Response> GenerateResponse(string charismaResponse)
         {
             var modifiedString = charismaResponse.Remove(charismaResponse.Length-1, 1).Remove(0, 11);
-            return JsonConvert.DeserializeObject<Response>(modifiedString);
+            var message = await Task<Response>.Run(() => JsonConvert.DeserializeObject<Response>(modifiedString));
+
+            return message;
         }
-        
-        /// <summary>
-        /// Convert a memory to Json.
-        /// </summary>
-        /// <returns></returns>
-        public static string MemoryToJson(Memory memory)
+
+        public static string ToJson<T>(T obj)
         {
-            var memObject = JsonUtility.ToJson(memory);
-            return memObject;
+            var jObject = JsonConvert.SerializeObject(obj);
+            
+            return jObject;
         }
-        
     }
 }

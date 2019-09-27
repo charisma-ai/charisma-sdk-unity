@@ -31,7 +31,7 @@ namespace BestHTTP.Extensions
         {
             if (this._position > 0)
             {
-                if (HTTPManager.Logger.Level == Logger.Loglevels.All)
+                if (HTTPManager.Logger.Levels == Logger.Loglevels.All)
                     HTTPManager.Logger.Information("BufferStream", string.Format("Flushing {0:N0} bytes", this._position));
 
                 this.stream.Write(this.buffer, 0, this._position);

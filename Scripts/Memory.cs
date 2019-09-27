@@ -1,6 +1,5 @@
 ﻿using System;
 using Newtonsoft.Json;
-using UnityEngine;
 
 namespace CharismaSDK
 {
@@ -26,22 +25,26 @@ namespace CharismaSDK
             this.saveValue = saveValue;          
         }
 
+        /// <summary>
+        /// Id of this memory
+        /// </summary>
         public int Id => _id;
+        
+        /// <summary>
+        /// Recall value of this memory
+        /// </summary>
         public string MemoryRecallValue => memoryRecallValue;
+        
+        /// <summary>
+        /// Save value of this memory
+        /// </summary>
         public string SaveValue
         {
             get => saveValue;
             set
             {
-                saveValue = value; 
-                Debug.LogFormat($"Memory: {memoryRecallValue} new value: {value}");
-
-                if (memoryRecallValue == "round_counter")
-                {
-                    Debug.Log("");
-                }
+                saveValue = value;
             }
         }
-
     }
 }
