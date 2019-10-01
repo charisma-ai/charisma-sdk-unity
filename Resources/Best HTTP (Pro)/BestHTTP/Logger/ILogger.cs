@@ -46,7 +46,7 @@ namespace BestHTTP.Logger
         /// <summary>
         /// The minimum severity to log
         /// </summary>
-        Loglevels Levels { get; set; }
+        Loglevels Level { get; set; }
         string FormatVerbose { get; set; }
         string FormatInfo { get; set; }
         string FormatWarn { get; set; }

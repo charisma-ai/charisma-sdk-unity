@@ -1121,7 +1121,7 @@ namespace BestHTTP
                             continue;
                         }
 
-                        if (HTTPManager.Logger.Levels <= Logger.Loglevels.Information)
+                        if (HTTPManager.Logger.Level <= Logger.Loglevels.Information)
                             VerboseLogging("Header - '" + header + "': '" + values[i] + "'");
 
                         stream.WriteArray(headerName);
@@ -1180,7 +1180,7 @@ namespace BestHTTP
 
                 string requestLine = string.Format("{0} {1} HTTP/1.1", MethodNames[(byte)MethodType], requestPathAndQuery);
 
-                if (HTTPManager.Logger.Levels <= Logger.Loglevels.Information)
+                if (HTTPManager.Logger.Level <= Logger.Loglevels.Information)
                     HTTPManager.Logger.Information("HTTPRequest", string.Format("Sending request: '{0}'", requestLine));
 
                 // Create a buffer stream that will not close 'stream' when disposed or closed.

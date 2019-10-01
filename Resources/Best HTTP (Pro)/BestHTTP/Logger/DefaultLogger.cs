@@ -10,7 +10,7 @@ namespace BestHTTP.Logger
     /// </summary>
     public class DefaultLogger : BestHTTP.Logger.ILogger
     {
-        public Loglevels Levels { get; set; }
+        public Loglevels Level { get; set; }
         public string FormatVerbose { get; set; }
         public string FormatInfo { get; set; }
         public string FormatWarn { get; set; }
@@ -25,12 +25,12 @@ namespace BestHTTP.Logger
             FormatErr     = "[{0}] Err [{1}]: {2}";
             FormatEx      = "[{0}] Ex [{1}]: {2} - Message: {3}  StackTrace: {4}";
 
-            Levels = UnityEngine.Debug.isDebugBuild ? Loglevels.Warning : Loglevels.Error;
+            Level = UnityEngine.Debug.isDebugBuild ? Loglevels.Warning : Loglevels.Error;
         }
 
         public void Verbose(string division, string verb)
         {
-            if (Levels <= Loglevels.All)
+            if (Level <= Loglevels.All)
             {
                 try
                 {
@@ -43,7 +43,7 @@ namespace BestHTTP.Logger
 
         public void Information(string division, string info)
         {
-            if (Levels <= Loglevels.Information)
+            if (Level <= Loglevels.Information)
             {
                 try
                 {
@@ -56,7 +56,7 @@ namespace BestHTTP.Logger
 
         public void Warning(string division, string warn)
         {
-            if (Levels <= Loglevels.Warning)
+            if (Level <= Loglevels.Warning)
             {
                 try
                 {
@@ -69,7 +69,7 @@ namespace BestHTTP.Logger
 
         public void Error(string division, string err)
         {
-            if (Levels <= Loglevels.Error)
+            if (Level <= Loglevels.Error)
             {
                 try
                 {
@@ -82,7 +82,7 @@ namespace BestHTTP.Logger
 
         public void Exception(string division, string msg, Exception ex)
         {
-            if (Levels <= Loglevels.Exception)
+            if (Level <= Loglevels.Exception)
             {
                 try
                 {
