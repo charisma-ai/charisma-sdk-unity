@@ -1116,7 +1116,7 @@ namespace BestHTTP.SignalR
                     }
                     else if (DateTime.UtcNow - ReconnectDelayStartedAt >= ReconnectDelay)
                     {
-                        if (HTTPManager.Logger.Levels <= Logger.Loglevels.Warning)
+                        if (HTTPManager.Logger.Level <= Logger.Loglevels.Warning)
                           HTTPManager.Logger.Warning("SignalR Connection", this.ReconnectStarted.ToString() + " " + this.ReconnectStartedAt.ToString() + " " + NegotiationResult.DisconnectTimeout.ToString());
                         Reconnect();
                     }

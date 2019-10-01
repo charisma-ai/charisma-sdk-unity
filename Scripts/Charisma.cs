@@ -329,7 +329,7 @@ namespace CharismaSDK
                 ("Prefabs/CoroutineConsumer"));  
             
             _token = token;
-            HTTPManager.Logger.Levels = loglevels;
+            HTTPManager.Logger.Level = loglevels;
         }
 
         ~Charisma()

@@ -342,7 +342,7 @@ namespace BestHTTP.Caching
                 try
                 {
                     info.Store(response);
-                    if (HTTPManager.Logger.Levels == Logger.Loglevels.All)
+                    if (HTTPManager.Logger.Level == Logger.Loglevels.All)
                         HTTPManager.Logger.Verbose("HTTPCacheService", string.Format("{0} - Saved to cache", uri.ToString()));
                 }
                 catch
