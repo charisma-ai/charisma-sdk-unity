@@ -245,7 +245,7 @@ namespace BestHTTP.WebSocket
 
             Interlocked.Add(ref this._bufferedAmount, frame.Data != null ? frame.Data.Length : 0);
 
-            //if (HTTPManager.Logger.Levels <= Logger.Loglevel.All)
+            //if (HTTPManager.Logger.Level <= Logger.Loglevel.All)
             //    HTTPManager.Logger.Information("WebSocketResponse", "Signaling SendThread!");
 
             newFrameSignal.Set();
@@ -347,7 +347,7 @@ namespace BestHTTP.WebSocket
             {
                 while (!closed && !closeSent)
                 {
-                    //if (HTTPManager.Logger.Levels <= Logger.Loglevel.All)
+                    //if (HTTPManager.Logger.Level <= Logger.Loglevel.All)
                     //    HTTPManager.Logger.Information("WebSocketResponse", "SendThread - Waiting...");
                     newFrameSignal.WaitOne();
 
@@ -362,7 +362,7 @@ namespace BestHTTP.WebSocket
                             this.unsentFrames.Clear();
                         }
 
-                        //if (HTTPManager.Logger.Levels <= Logger.Loglevel.All)
+                        //if (HTTPManager.Logger.Level <= Logger.Loglevel.All)
                         //    HTTPManager.Logger.Information("WebSocketResponse", "SendThread - Wait is over, " + localFrames.Count.ToString() + " new frames!");
 
                         while (localFrames.Count > 0)

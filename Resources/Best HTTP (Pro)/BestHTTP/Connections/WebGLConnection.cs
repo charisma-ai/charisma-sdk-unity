@@ -392,7 +392,7 @@ namespace BestHTTP
         private static extern void XHR_Release(int nativeId);
 
         [DllImport("__Internal")]
-        private static extern void XHR_SetLoglevel(int loglevel);
+        private static extern void XHR_SetLoglevel(int logLevel);
 
 #endregion
     }
