@@ -64,4 +64,10 @@ The script itself can be found in the example folder as well.
 
 ## 4. Known Issues (v0.02)
 
+<<<<<<< HEAD
 * Some character voices do not convert to audio files properly, resulting in an FMOD error. The voices concerned are all named after Game of Thrones characters. Please avoid using these voices for the time being. 
+=======
+* Some character voices do not convert to audio files properly, resulting in an FMOD error. The voices concerned are all named after Game of Thrones characters. Please avoid using these voices for the time being. 
+
+
+>>>>>>> parent of e6e6dc8... Reset Logger.Levels to Logger.Level

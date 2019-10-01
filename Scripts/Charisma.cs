@@ -329,13 +329,11 @@ namespace CharismaSDK
                 ("Prefabs/CoroutineConsumer"));  
             
             _token = token;
-            HTTPManager.Logger.Level = loglevels;
+            HTTPManager.Logger.Levels = loglevels;
         }
 
         ~Charisma()
         {
-            GameObject.Destroy(_coroutineConsumer.gameObject);
-            
             Disconnect();
         }
 

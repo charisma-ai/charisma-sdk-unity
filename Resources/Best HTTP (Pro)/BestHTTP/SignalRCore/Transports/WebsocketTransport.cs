@@ -103,7 +103,7 @@ namespace BestHTTP.SignalRCore.Transports
             // To help debugging, in the editor when the plugin's loggging level is set to All, we will
             //  send all messages in textual form. This will help the readability when sent through a proxy.
 #if UNITY_EDITOR
-            if (HTTPManager.Logger.Level == Logger.Loglevels.All)
+            if (HTTPManager.Logger.Levels == Logger.Loglevels.All)
                 this.webSocket.Send(System.Text.Encoding.UTF8.GetString(msg, 0, msg.Length));
             else
 #endif

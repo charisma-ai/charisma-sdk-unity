@@ -151,7 +151,7 @@ namespace BestHTTP
                 if (logger == null)
                 {
                     logger = new DefaultLogger();
-                    logger.Level = Loglevels.None;
+                    logger.Levels = Loglevels.None;
                 }
 
                 return logger;
