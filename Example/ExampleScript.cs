@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using BestHTTP;
+using BestHTTP.Logger;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace CharismaSDK.Example
@@ -23,14 +26,17 @@ namespace CharismaSDK.Example
         
         private int _conversationId;
         private Charisma _charisma;
-        
+
         private void Start()
         {
             // The Charisma logger logs events to and from Charisma.
             CharismaLogger.IsActive = showLog;
-            
+
             // We create the config of our token here, based on the settings we have set in the inspector.
             var setting = new CharismaTokenSetting(storyId: storyId, storyVersion: storyVersion, draftToken: draftToken);
+            
+            // Before we do anything, we need to set up Charisma. You only need to do this once per scene. 
+            Charisma.Setup();
             
             // We use these settings to create a play-through token.
             Charisma.CreatePlayThroughToken(tokenSetting: setting, callback: token =>
@@ -43,7 +49,7 @@ namespace CharismaSDK.Example
                     
                     // We can not create a new charisma object and pass it our token.
                     this._charisma = new Charisma(token: token);
-
+                   
                     // We can now connect to Charisma. Once we receive the connect callback, we can start our play-through.
                     _charisma.Connect(onConnectCallback: () =>
                     {

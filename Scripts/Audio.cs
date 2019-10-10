@@ -31,8 +31,6 @@ namespace CharismaSDK
         {
             if (options.encoding == "mp3")
             {
-                CharismaLogger.Log("Charisma: Generating audio");
-
                 var tempFile = Application.persistentDataPath + "/bytes.mp3";
 
                 if (Data != null)
@@ -46,11 +44,11 @@ namespace CharismaSDK
                 Clip = CharismaUtilities.FromMp3Data(clip.bytes);
                 
                 action.Invoke(Clip);
+                
+                CharismaLogger.Log("Generated audio");
             }
             else
             {
-                CharismaLogger.Log("Charisma: Generating audio");
-
                 var tempFile = Application.persistentDataPath + "/bytes.ogg";
 
                 if (Data != null)
@@ -64,6 +62,8 @@ namespace CharismaSDK
                 Clip = clip.GetAudioClip(false, false, AudioType.OGGVORBIS);
                 
                 action.Invoke(Clip);
+                
+                CharismaLogger.Log("Generated audio");
             }
         }
 

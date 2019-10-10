@@ -27,6 +27,28 @@ namespace CharismaSDK
 
         #region Static Methods
 
+        public static void Setup()
+        {
+            try
+            {
+                // Move HTTP updates to different thread
+                if(!HTTPUpdateDelegator.IsThreaded)
+                    HTTPUpdateDelegator.IsThreaded = true;
+                
+                // Create the coroutine consumer
+                GameObject.Instantiate(Resources.Load<CoroutineConsumer>
+                    ("Prefabs/CoroutineConsumer"));   
+                
+                CharismaLogger.Log("Set up complete!");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error: Failed to set up properly! {e}" );
+                
+                throw;
+            }
+        }
+
         /// <summary>
         /// Generate a new play-through.
         /// </summary>
@@ -45,7 +67,7 @@ namespace CharismaSDK
                 {
                     if (!response.IsSuccess)
                     {
-                        Debug.LogError("Error:" +response.Message);
+                        Debug.LogError("Error:" + originalRequest.Response.DataAsText);
                         return;
                     }
                     
@@ -53,7 +75,7 @@ namespace CharismaSDK
                     var token = CharismaUtilities.TokenToString(data);
                                           
                     callback?.Invoke(token);
-                    CharismaLogger.Log("HTTP: Token request complete");
+                    CharismaLogger.Log("Token request complete");
                 }))
             {
                 RawData = Encoding.UTF8.GetBytes(requestString)
@@ -63,11 +85,11 @@ namespace CharismaSDK
             if (tokenSetting.StoryVersion == -1 && !string.IsNullOrEmpty(tokenSetting.DraftToken))
             {
                 request.SetHeader("Authorization", $"Bearer {tokenSetting.DraftToken}");
-                CharismaLogger.Log("HTTP: Requesting token with draft");
+                CharismaLogger.Log("Charisma: Requesting token with draft");
             }
             else
             {
-                CharismaLogger.Log("HTTP: Requesting token with published");
+                CharismaLogger.Log("Requesting token with published");
             }
                 
 			
@@ -88,7 +110,7 @@ namespace CharismaSDK
                 {
                     if (!response.IsSuccess)
                     {
-                        Debug.LogError("Error:" + originalRequest.Exception.Message);
+                        Debug.LogError("Error:" + originalRequest.Response.DataAsText);
                         return;
                     } 
                    
@@ -97,7 +119,7 @@ namespace CharismaSDK
 
                     callback?.Invoke(conversation.ConversationId);
                     
-                    CharismaLogger.Log("HTTP: Conversation request complete");
+                    CharismaLogger.Log("Conversation request complete");
                 }))
             {
                 RawData = Encoding.UTF8.GetBytes(token)
@@ -107,7 +129,7 @@ namespace CharismaSDK
             request.UseAlternateSSL = true;
             request.Send();
             
-            CharismaLogger.Log("HTTP: Requesting conversation");
+            CharismaLogger.Log("Requesting conversation");
         }
 
         /// <summary>
@@ -133,11 +155,11 @@ namespace CharismaSDK
                     {
                         if (!response.IsSuccess)
                         {
-                            Debug.LogError("Error:" +response.Message);
+                            Debug.LogError("Error:" + originalRequest.Response.DataAsText);
                             return;
                         }
                         
-                        CharismaLogger.Log($"Charisma: updated mood of '{characterName}'");
+                        CharismaLogger.Log($"Updated mood of '{characterName}'");
                     }))
             {
                 
@@ -174,11 +196,11 @@ namespace CharismaSDK
                     {
                         if (!response.IsSuccess)
                         {
-                            Debug.LogError("Error:" +response.Message);
+                            Debug.LogError("Error:" + originalRequest.Response.DataAsText);
                             return;
                         }
                         
-                        CharismaLogger.Log($"Charisma: updated mood of '{characterName}'");
+                        CharismaLogger.Log($"Updated mood of '{characterName}'");
                         callback?.Invoke();
                     }))
             {
@@ -206,11 +228,11 @@ namespace CharismaSDK
                 {
                     if (!response.IsSuccess)
                     {
-                        Debug.LogError("Error:" +response.Message);
+                        Debug.LogError("Error:" + originalRequest.Response.DataAsText);
                         return;
                     }
                     
-                    CharismaLogger.Log($"Charisma: Set memory: '{memory.MemoryRecallValue}' with value '{memory.SaveValue}'");
+                    CharismaLogger.Log($"Set memory -  '{memory.MemoryRecallValue}' with value '{memory.SaveValue}'");
                 }))
             {
                 RawData = Encoding.UTF8.GetBytes(CharismaUtilities.ToJson(memory))
@@ -239,11 +261,11 @@ namespace CharismaSDK
                 {
                     if (!response.IsSuccess)
                     {
-                        Debug.LogError("Error:" +response.Message);
+                        Debug.LogError("Error:" + originalRequest.Response.DataAsText);
                         return;
                     }
                     
-                    CharismaLogger.Log($"Charisma: Set memory: '{memory.MemoryRecallValue}' with value '{memory.SaveValue}'");
+                    CharismaLogger.Log($"Set memory - '{memory.MemoryRecallValue}' with value '{memory.SaveValue}'");
                     callback?.Invoke();
                 }))
             {
@@ -312,9 +334,6 @@ namespace CharismaSDK
         /// <param name="token">A valid play-though token.</param>
         public Charisma(string token)
         {
-            _coroutineConsumer = GameObject.Instantiate(Resources.Load<CoroutineConsumer>
-                ("Prefabs/CoroutineConsumer"));   
-            
             _token = token;
         }
 
@@ -322,14 +341,11 @@ namespace CharismaSDK
         /// Interaction with Charisma
         /// </summary>
         /// <param name="token">A valid play-though token.</param>
-        /// <param name="loglevels">Log levels for advanced debugging.</param>
-        public Charisma(string token, Loglevels loglevels)
+        /// <param name="loglevel">Log levels for advanced debugging.</param>
+        public Charisma(string token, Loglevels loglevel)
         {
-            _coroutineConsumer = GameObject.Instantiate(Resources.Load<CoroutineConsumer>
-                ("Prefabs/CoroutineConsumer"));  
-            
             _token = token;
-            HTTPManager.Logger.Level = loglevels;
+            HTTPManager.Logger.Level = loglevel;
         }
 
         ~Charisma()
@@ -364,7 +380,7 @@ namespace CharismaSDK
             
             _socket.On(SocketIOEventTypes.Connect, (socket, packet, args) =>
             {
-                CharismaLogger.Log("Socket: Connected");
+                CharismaLogger.Log("Connected to socket");
                 
                 _socketManager = manager;
             });
@@ -376,21 +392,24 @@ namespace CharismaSDK
 			
             _socket.On("status", (socket, packet, args) => {
                 
-                    CharismaLogger.Log("Socket: Status ready");		
+                    CharismaLogger.Log("Ready to begin play");		
                     
                     onConnectCallback?.Invoke();
             });
 			
-            _socket.On("message", async (socket, packet, args) =>
+            _socket.On("message", (socket, packet, args) =>
             {
-                var response = await CharismaUtilities.GenerateResponse(packet.Payload);
-                
-                OnMessage?.Invoke(response.ConversationId, response);
-                 
-                // We are done processing this message
-                _isProcessing = false;           
-                
-                CharismaLogger.Log($"Charisma: Received message: {response.Message.Text}");                           
+                CoroutineConsumer.Instance.Enqueue((async () =>
+                {
+                    var response = await CharismaUtilities.GenerateResponse(packet.Payload);
+
+                    OnMessage?.Invoke(response.ConversationId, response);
+
+                    // We are done processing this message
+                    _isProcessing = false;
+
+                    CharismaLogger.Log($"Received message");
+                }));
             });
 			
             _socket.On("start-typing", (socket, packet, args) =>
@@ -399,14 +418,14 @@ namespace CharismaSDK
 
                 OnStartTyping?.Invoke(CharismaUtilities.GenerateConversation(packet.Payload).ConversationId);
                 
-                CharismaLogger.Log("Charisma: Start typing");
+                CharismaLogger.Log("Start typing");
             });
 			
             _socket.On("stop-typing", (socket, packet, args) =>
             {
                 OnStopTyping?.Invoke(CharismaUtilities.GenerateConversation(packet.Payload).ConversationId);
                 
-                CharismaLogger.Log("Charisma: Stop typing");
+                CharismaLogger.Log("Stop typing");
             });
 			
             _socket.On("problem", (socket, packet, args) =>
@@ -434,7 +453,7 @@ namespace CharismaSDK
                 return;
             }
             
-            CharismaLogger.Log("Charisma: Successfully disconnected");
+            CharismaLogger.Log("Successfully disconnected");
         }
         
         #endregion
@@ -462,7 +481,7 @@ namespace CharismaSDK
             _socket?.Emit("start", startOptions);	
 
             
-            CharismaLogger.Log("Charisma: Starting interaction");
+            CharismaLogger.Log("Starting interaction");
         }
         
         /// <summary>
@@ -481,7 +500,7 @@ namespace CharismaSDK
             var startOptions = new StartOptions(conversationId, sceneIndex);			
             _socket?.Emit("start", startOptions);
 
-            CharismaLogger.Log("Charisma: Starting interaction");
+            CharismaLogger.Log("Starting interaction");
         }
 
         /// <summary>
@@ -499,7 +518,7 @@ namespace CharismaSDK
             var tapOptions = _speechOptions != null ? new Tap(conversationId, _speechOptions) : new Tap(conversationId);
             _socket?.Emit("tap", tapOptions);
             
-            CharismaLogger.Log("Charisma: Tap");
+            CharismaLogger.Log("Tap");
         }
 
         /// <summary>
@@ -521,7 +540,7 @@ namespace CharismaSDK
             var tapOptions = _speechOptions != null ? new Tap(conversationId, _speechOptions) : new Tap(conversationId);
             _socket?.Emit("tap", tapOptions);
             
-            CharismaLogger.Log("Charisma: Tap");
+            CharismaLogger.Log("Tap");
         }
         
         /// <summary>
@@ -549,7 +568,7 @@ namespace CharismaSDK
             
             _socket?.Emit("reply", playerMessage);
             
-            CharismaLogger.Log("Charisma: Sending player response");  
+            CharismaLogger.Log($"Sending player response '{message}' to conversation {conversationId}");  
         }
 
         /// <summary>
@@ -581,7 +600,7 @@ namespace CharismaSDK
             
             _socket?.Emit("reply", playerMessage);
             
-            CharismaLogger.Log("Charisma: Sending player response");  
+            CharismaLogger.Log($"Sending player response - '{message}' to conversation {conversationId}");  
         }
 
         #endregion

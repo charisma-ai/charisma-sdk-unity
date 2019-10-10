@@ -7,6 +7,6 @@ public static class CharismaLogger
     public static void Log(string message)
     {
         if(IsActive)
-            Debug.Log(message);
+            Debug.Log("CharismaLogger: " + message);
     }
 }
