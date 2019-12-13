@@ -5,18 +5,16 @@ using UnityEngine;
 
 namespace CharismaSDK
 {
-    public class CoroutineConsumer : MonoBehaviour
+    public class MainThreadConsumer : MonoBehaviour
     {
-        public static CoroutineConsumer Instance { get; private set; }
+        public static MainThreadConsumer Instance { get; private set; }
         private static readonly Queue<Action> ExecuteOnMainThread = new Queue<Action>();
         private void Awake()
         {
             if (Instance != null && Instance != this)
-            {
                 Destroy(this.gameObject);
-            } else {
+            else
                 Instance = this;
-            }
         }
 
         private void Update()

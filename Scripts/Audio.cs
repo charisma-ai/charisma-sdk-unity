@@ -17,7 +17,7 @@ namespace CharismaSDK
             this.Url = url;
         }
 
-        public void GenerateAudio(SpeechOptions options, Action<AudioClip> onAudioGenerated)
+        public void Generate(SpeechOptions options, Action<AudioClip> onAudioGenerated)
         {
             if (!Data.Any())
             {
@@ -25,7 +25,7 @@ namespace CharismaSDK
                 return;
             }
             
-            CoroutineConsumer.Instance.Consume(Generate(options, Data, onAudioGenerated));
+            MainThreadConsumer.Instance.Consume(Generate(options, Data, onAudioGenerated));
          }
         private IEnumerator Generate(SpeechOptions options, byte[] data, Action<AudioClip> action)
         {

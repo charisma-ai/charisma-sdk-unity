@@ -17,7 +17,7 @@ namespace CharismaSDK.Example
         public bool showLog;
         public int storyId;
         public int storyVersion;
-        public int startFromScene;
+        [Min(1)]public int startFromScene;
         public SpeechOptions speechOptions;
         [Header(header: "UI")] 
         public Button button;
@@ -29,14 +29,15 @@ namespace CharismaSDK.Example
 
         private void Start()
         {
+            
+            // Before we do anything, we need to set up Charisma. Put this in your initialisation code. You only need to do this one.
+            Charisma.Setup();
+            
             // The Charisma logger logs events to and from Charisma.
             CharismaLogger.IsActive = showLog;
 
-            // We create the config of our token here, based on the settings we have set in the inspector.
+            // We create the config of our token here, based on the settings we have defined in the inspector.
             var setting = new CharismaTokenSetting(storyId: storyId, storyVersion: storyVersion, draftToken: draftToken);
-            
-            // Before we do anything, we need to set up Charisma. You only need to do this once per scene. 
-            Charisma.Setup();
             
             // We use these settings to create a play-through token.
             Charisma.CreatePlayThroughToken(tokenSetting: setting, callback: token =>
@@ -47,7 +48,7 @@ namespace CharismaSDK.Example
                     // We'll cache out conversation Id since we need  this to send replies and other events to Charisma.
                     this._conversationId = conversationId;
                     
-                    // We can not create a new charisma object and pass it our token.
+                    // We can now create a new charisma object and pass it our token.
                     this._charisma = new Charisma(token: token);
                    
                     // We can now connect to Charisma. Once we receive the connect callback, we can start our play-through.
@@ -60,8 +61,8 @@ namespace CharismaSDK.Example
                     // We can now subscribe to events from charisma.
                     _charisma.OnMessage += (id, message) =>
                     {
-                        // Once we have received a message, we want to play the audio. To do this we run the GenerateAudio method and wait for the callback which contains our audio clip, then pass it to the audio player.
-                        message.Message.Speech.Audio.GenerateAudio(options: speechOptions, onAudioGenerated: (clip =>
+                        // Once we have received a message, we want to play the audio. To do this we run the Generate method and wait for the callback which contains our audio clip, then pass it to the audio player.
+                        message.Message.Speech.Audio.Generate(options: speechOptions, onAudioGenerated: (clip =>
                         {
                             audioSource.clip = clip;
                             audioSource.Play();

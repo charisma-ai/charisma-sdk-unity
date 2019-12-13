@@ -6,7 +6,6 @@ using BestHTTP.SocketIO;
 using BestHTTP.SocketIO.JsonEncoders;
 using BestHTTP.SocketIO.Transports;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using PlatformSupport.Collections.ObjectModel;
 using UnityEngine;
 
@@ -36,8 +35,8 @@ namespace CharismaSDK
                     HTTPUpdateDelegator.IsThreaded = true;
                 
                 // Create the coroutine consumer
-                GameObject.Instantiate(Resources.Load<CoroutineConsumer>
-                    ("Prefabs/CoroutineConsumer"));   
+                GameObject.Instantiate(Resources.Load<MainThreadConsumer>
+                    ("Prefabs/MainThreadConsumer"));   
                 
                 CharismaLogger.Log("Set up complete!");
             }
@@ -56,11 +55,11 @@ namespace CharismaSDK
         /// <param name="callback">Called when a valid token has been generated</param>
         public static void CreatePlayThroughToken(CharismaTokenSetting tokenSetting, Action<string> callback)
         {
-            var requestString = tokenSetting.StoryVersion != 0
-                ? new JObject
-                    {{"storyId", tokenSetting.StoryId}, {"storyVersion", tokenSetting.StoryVersion}}.ToString()
-                : new JObject {{"storyId", tokenSetting.StoryId}}.ToString();
-
+            var requestParams = tokenSetting.StoryVersion != 0
+                ? Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(
+                    new {storyId = tokenSetting.StoryId, version = tokenSetting.StoryVersion}))
+                : Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(
+                    new {storyId = tokenSetting.StoryId}));
             
             var request = new HTTPRequest(new Uri($"{BaseUrl}play/token/"), HTTPMethods.Post, (
                 (originalRequest, response) =>
@@ -78,7 +77,7 @@ namespace CharismaSDK
                     CharismaLogger.Log("Token request complete");
                 }))
             {
-                RawData = Encoding.UTF8.GetBytes(requestString)
+                RawData = requestParams
             };
             
             // Only pass the user token if we are debugging
@@ -322,7 +321,7 @@ namespace CharismaSDK
         private Socket _socket;
         private bool _isProcessing;
         private SpeechOptions _speechOptions;
-        private CoroutineConsumer _coroutineConsumer;
+        private MainThreadConsumer _mainThreadConsumer;
 
         #endregion
 
@@ -399,7 +398,7 @@ namespace CharismaSDK
 			
             _socket.On("message", (socket, packet, args) =>
             {
-                CoroutineConsumer.Instance.Enqueue((async () =>
+                MainThreadConsumer.Instance.Enqueue((async () =>
                 {
                     var response = await CharismaUtilities.GenerateResponse(packet.Payload);
 
