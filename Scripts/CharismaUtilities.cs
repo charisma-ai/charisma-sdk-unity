@@ -1,9 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using NAudio.Wave;
+﻿using System.Threading.Tasks;
 using Newtonsoft.Json;
-using UnityEngine;
 
 namespace CharismaSdk
 {

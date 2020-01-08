@@ -27,7 +27,6 @@ namespace CharismaSdk.Example
 
         private void Start()
         {
-            
             // Before we do anything, we need to set up Charisma. Put this in your initialisation code. You only need to do this one.
             Charisma.Setup();
             
