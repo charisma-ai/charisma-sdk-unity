@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace CharismaSDK
+namespace CharismaSdk
 {
     public class MainThreadConsumer : MonoBehaviour
     {

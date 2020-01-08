@@ -852,10 +852,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   audioSource: {fileID: 1345421017}
-  draftToken: 
+  draftToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiY2hhcmlzbWFfcGVyc29uIiwicGVyc29uX2lkIjozMzcsImV4cCI6MTU4MDg5NjY5NywiaWF0IjoxNTc4MzA0Njk2LCJhdWQiOiJwb3N0Z3JhcGhpbGUiLCJpc3MiOiJwb3N0Z3JhcGhpbGUifQ.OHA_RWEGY4wIImr9Lta21AnJJWmfeV7r1hSLf9M8jdo
   showLog: 1
-  storyId: 0
-  storyVersion: 0
+  storyId: 796
+  storyVersion: -1
   startFromScene: 1
   speechOptions:
     _audioOutput: 1

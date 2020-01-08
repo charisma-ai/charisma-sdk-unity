@@ -1,10 +1,7 @@
-﻿using System;
-using BestHTTP;
-using BestHTTP.Logger;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace CharismaSDK.Example
+namespace CharismaSdk.Example
 {
     /// <summary>
     /// This script demonstrates a simple interaction with Charisma
@@ -18,6 +15,7 @@ namespace CharismaSDK.Example
         public int storyId;
         public int storyVersion;
         [Min(1)]public int startFromScene;
+        public bool useSpeech;
         public SpeechOptions speechOptions;
         [Header(header: "UI")] 
         public Button button;
@@ -37,10 +35,10 @@ namespace CharismaSDK.Example
             CharismaLogger.IsActive = showLog;
 
             // We create the config of our token here, based on the settings we have defined in the inspector.
-            var setting = new CharismaTokenSetting(storyId: storyId, storyVersion: storyVersion, draftToken: draftToken);
+            var setting = new GetPlaythroughTokenParams(storyId: storyId, storyVersion: storyVersion, draftToken: draftToken);
             
             // We use these settings to create a play-through token.
-            Charisma.CreatePlayThroughToken(tokenSetting: setting, callback: token =>
+            Charisma.CreatePlaythroughToken(tokenParams: setting, callback: token =>
             {
                 // Once we receive the callback with our token, we can create a new conversation.
                 Charisma.CreateConversation(token: token, callback: conversationId =>
@@ -50,27 +48,29 @@ namespace CharismaSDK.Example
                     
                     // We can now create a new charisma object and pass it our token.
                     this._charisma = new Charisma(token: token);
-                   
-                    // We can now connect to Charisma. Once we receive the connect callback, we can start our play-through.
-                    _charisma.Connect(onConnectCallback: () =>
+
+                    // We can now connect to Charisma. Once we receive the ready callback, we can start our play-through.
+                    _charisma.Connect(onReadyCallback: () =>
                     {
                         // In the start function, we pass the scene we want to start from, the conversationId we cached earlier, and the speech options from the inspector. 
-                        _charisma.Start(sceneIndex: startFromScene, conversationId: _conversationId, speechOptions: speechOptions);
+                        _charisma.Start(sceneIndex: startFromScene, conversationId: _conversationId, speechOptions: useSpeech? speechOptions : null);
                     });
                     
                     // We can now subscribe to events from charisma.
                     _charisma.OnMessage += (id, message) =>
                     {
-                        // Once we have received a message, we want to play the audio. To do this we run the Generate method and wait for the callback which contains our audio clip, then pass it to the audio player.
-                        message.Message.Speech.Audio.Generate(options: speechOptions, onAudioGenerated: (clip =>
+                        if (useSpeech)
                         {
-                            audioSource.clip = clip;
-                            audioSource.Play();
-                        }));
+                            // Once we have received a message, we want to play the audio. To do this we run the GetClip method and wait for the callback which contains our audio clip, then pass it to the audio player.
+                            message.Message.Speech.Audio.GetClip(options: speechOptions, onAudioGenerated: (clip =>
+                            {
+                                audioSource.clip = clip;
+                                audioSource.Play();
+                            }));
+                        }
                         
-                        // 
                         text.text = ($"{message.Message.Character.Name}: {message.Message.Text}");
-                        
+
                         // If this is the end of the story, we disconnect from Charisma.
                         if(message.EndStory)
                             _charisma.Disconnect();
@@ -93,7 +93,7 @@ namespace CharismaSDK.Example
             if(string.IsNullOrEmpty(value: input.text)) return;
             
             // Send the text of our input field to Charisma.
-             _charisma.Reply(message: input.text, conversationId: _conversationId);
+             _charisma.Reply(conversationId: _conversationId, message: input.text);
              
              input.text = string.Empty;
         }

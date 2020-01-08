@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace CharismaSDK
+namespace CharismaSdk
 {
     public class Character
     {
@@ -63,17 +63,15 @@ namespace CharismaSDK
         }
     }
 
-    public class MoodSetter
+    public class SetMoodParams
     {
         public string characterName;
         public Mood modifier;
         
-        public MoodSetter(string characterName, Mood modifier)
+        public SetMoodParams(string characterName, Mood modifier)
         {
             this.characterName = characterName;
             this.modifier = modifier;
         }
     }
-    
-    
 }

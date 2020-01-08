@@ -1,12 +1,18 @@
 ﻿using UnityEngine;
 
-public static class CharismaLogger
+namespace CharismaSdk
 {
-    public static bool IsActive { get; set; }
-    
-    public static void Log(string message)
+    public static class CharismaLogger
     {
-        if(IsActive)
-            Debug.Log("CharismaLogger: " + message);
+        public static bool IsActive { get; set; }
+    
+        public static void Log(string message)
+        {
+            // TODO: Add filtering of messages
+            // TODO: Add message types
+        
+            if(IsActive)
+                Debug.Log("CharismaLogger: " + message);
+        }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 
-namespace CharismaSDK
+namespace CharismaSdk
 {
     [Serializable]
     public class Memory
@@ -10,12 +10,6 @@ namespace CharismaSDK
         public string saveValue;
         
         private readonly int _id;
-        
-        public Memory(string recallValue, string saveValue)
-        {
-            this.memoryRecallValue = recallValue;
-            this.saveValue = saveValue;          
-        }
         
         [JsonConstructor]
         public Memory(int id, string recallValue, string saveValue)
@@ -41,10 +35,19 @@ namespace CharismaSDK
         public string SaveValue
         {
             get => saveValue;
-            set
-            {
-                saveValue = value;
-            }
+            set => saveValue = value;
+        }
+    }
+    
+    public class SetMemoryParams
+    {
+        public string memoryRecallValue;
+        public string saveValue;
+
+        public SetMemoryParams(string recallValue, string saveValue)
+        {
+            this.memoryRecallValue = recallValue;
+            this.saveValue = saveValue;          
         }
     }
 }
