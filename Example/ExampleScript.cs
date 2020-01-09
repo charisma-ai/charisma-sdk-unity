@@ -1,165 +1,100 @@
-﻿using System.Collections.Generic;
-using BestHTTP.Logger;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace CharismaSDK.Example
+namespace CharismaSdk.Example
 {
-    [RequireComponent(typeof(Charisma))]
+    /// <summary>
+    /// This script demonstrates a simple interaction with Charisma
+    /// </summary>
     public class ExampleScript : MonoBehaviour
     {
-        [Header("Assign charisma settings object here")]
-        [SerializeField] private CharismaSettings _settings;
-        [SerializeField] private InputField _inputField;
-        [SerializeField] private Button _button;
-        [SerializeField] private Text _outputField;
-        [SerializeField] private bool _useAudio;
-        [SerializeField] private AudioSource _audioSource;
+        [Header(header: "Charisma")]
+        public AudioSource audioSource;
+        public string draftToken;
+        public bool showLog;
+        public int storyId;
+        public int storyVersion;
+        [Min(1)]public int startFromScene;
+        public bool useSpeech;
+        public SpeechOptions speechOptions;
+        [Header(header: "UI")] 
+        public Button button;
+        public InputField input;
+        public Text text;
         
-        [Header("For advanced debugging")]
-        [SerializeField] private Loglevels _logLevels;
+        private int _conversationId;
+        private Charisma _charisma;
 
-        // Reference to the charisma component on this Game Object.
-        private Charisma _charisma;       
-        
-        // List of all current conversation.
-        private Dictionary<string, Conversation> _conversations;
-        
-        #region Monobehaviour Callbacks
-        
         private void Start()
         {
-            _charisma = GetComponent<Charisma>();
-            _conversations = new Dictionary<string, Conversation>();
+            // Before we do anything, we need to set up Charisma. Put this in your initialisation code. You only need to do this one.
+            Charisma.Setup();
             
-            BindEvents();
+            // The Charisma logger logs events to and from Charisma.
+            CharismaLogger.IsActive = showLog;
+
+            // We create the config of our token here, based on the settings we have defined in the inspector.
+            var setting = new GetPlaythroughTokenParams(storyId: storyId, storyVersion: storyVersion, draftToken: draftToken);
             
-            // Entry point.
-            StartConversation();
+            // We use these settings to create a play-through token.
+            Charisma.CreatePlaythroughToken(tokenParams: setting, callback: token =>
+            {
+                // Once we receive the callback with our token, we can create a new conversation.
+                Charisma.CreateConversation(token: token, callback: conversationId =>
+                {
+                    // We'll cache out conversation Id since we need  this to send replies and other events to Charisma.
+                    this._conversationId = conversationId;
+                    
+                    // We can now create a new charisma object and pass it our token.
+                    this._charisma = new Charisma(token: token);
+
+                    // We can now connect to Charisma. Once we receive the ready callback, we can start our play-through.
+                    _charisma.Connect(onReadyCallback: () =>
+                    {
+                        // In the start function, we pass the scene we want to start from, the conversationId we cached earlier, and the speech options from the inspector. 
+                        _charisma.Start(sceneIndex: startFromScene, conversationId: _conversationId, speechOptions: useSpeech? speechOptions : null);
+                    });
+                    
+                    // We can now subscribe to events from charisma.
+                    _charisma.OnMessage += (id, message) =>
+                    {
+                        if (useSpeech)
+                        {
+                            // Once we have received a message, we want to play the audio. To do this we run the GetClip method and wait for the callback which contains our audio clip, then pass it to the audio player.
+                            message.Message.Speech.Audio.GetClip(options: speechOptions, onAudioGenerated: (clip =>
+                            {
+                                audioSource.clip = clip;
+                                audioSource.Play();
+                            }));
+                        }
+                        
+                        text.text = ($"{message.Message.Character.Name}: {message.Message.Text}");
+
+                        // If this is the end of the story, we disconnect from Charisma.
+                        if(message.EndStory)
+                            _charisma.Disconnect();
+                    };
+                });
+            });
             
-            _inputField.ActivateInputField();
+            // Bind the SendPlayerMessage function to the UI button.
+            button.onClick.AddListener(call: SendPlayerMessage);
         }
 
         private void Update()
-        {            
-            if (!Input.GetKeyDown(KeyCode.Return) || _inputField.text == string.Empty) return;
+        {
+            if(Input.GetKeyDown(key: KeyCode.Return))
+                SendPlayerMessage();
+        }
+
+        public void SendPlayerMessage()
+        {
+            if(string.IsNullOrEmpty(value: input.text)) return;
             
-            SendPlayerMessage(_inputField.text);
-            _inputField.text = string.Empty;
+            // Send the text of our input field to Charisma.
+             _charisma.Reply(conversationId: _conversationId, message: input.text);
+             
+             input.text = string.Empty;
         }
-
-        #endregion
-        
-        #region Events
-
-        // Bind all events relevant to communicating with Charisma.
-        private void BindEvents()
-        {
-            _charisma.OnTokenReceived += InitializeCharisma;
-            _charisma.OnConversationInitialised += Connect;
-            _charisma.OnConnected += StartInteraction;
-            _charisma.OnReceivedResponse += HandleResponse;
-            
-            _button.onClick.AddListener((() =>
-            {
-                SendPlayerMessage(_inputField.text);
-                _inputField.text = string.Empty;
-                
-            }));
-        }
-        
-        private void OnDisable()
-        {
-            UnbindEvents();
-            StopConversation();
-        }
-
-        private void OnDestroy()
-        {
-            UnbindEvents();
-            StopConversation();
-        }       
-
-        private void UnbindEvents()
-        {
-            _charisma.OnTokenReceived -= InitializeCharisma;
-            _charisma.OnConversationInitialised -= Connect;
-            _charisma.OnConnected -= StartInteraction;
-            _charisma.OnReceivedResponse -= HandleResponse;
-        }
-        
-        #endregion
-
-        #region Initialisation
-
-        private void StartConversation()
-        {
-            // Get token.
-            _charisma.GetToken();
-        }
-
-        private void InitializeCharisma(string token)
-        {
-            // Initialise our Charisma object.
-            _charisma.Initialise(token, _logLevels);
-            
-            // Use token to add conversation.
-            _charisma.AddConversation(token);    
-        }
-
-        private void Connect(int id)
-        {
-            // Save conversation   
-            _conversations.Add("MyFirstConversation", new Conversation(id));
-            
-            // Once a conversation has been added. Connect to Charisma.
-            _charisma.Connect();
-        }
-
-        private void StartInteraction()
-        {
-            // Once we are connected. Start the interaction.
-            _charisma.StartInteraction(1, _useAudio);       
-        }
-
-        #endregion
-
-        #region Communication
-
-        private void HandleResponse(Response response, AudioClip responseAudio, string url)
-        {
-            // We have received a response.             
-            Debug.Log($"Charisma: {response.Message.Text}");                      
-            _outputField.text = $"{response.Message.Character.Name}: {response.Message.Text}";
-
-            if (!_useAudio) return;
-                
-            // If we have defined audio, play it now.
-            _audioSource.clip = responseAudio;
-            _audioSource.Play();
-            
-            if (!response.EndStory) return;
-            
-            // If the node is marked as "End Story", disconnect.
-            StopConversation();   
-        }
-        
-        // Send a player message to charisma. Include our audio preferences.
-        private void SendPlayerMessage(string message)
-        {
-            _charisma.SendPlayerMessage(message, _useAudio);
-        }
-
-        #endregion
-
-        #region Termination
-
-        private void StopConversation()
-        {
-            _charisma.Disconnect();               
-        }
-
-        #endregion
-
     }
 }
