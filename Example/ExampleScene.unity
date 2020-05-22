@@ -857,7 +857,7 @@ MonoBehaviour:
   storyId: 0
   storyVersion: 0
   startFromScene: 0
-  useSpeech: 0
+  useSpeech: 1
   speechOptions:
     _audioOutput: 1
     _encoding: 1
