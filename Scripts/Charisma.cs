@@ -113,7 +113,6 @@ namespace CharismaSdk
             }
             
             request.AddHeader("Content-Type", "application/json");
-            request.UseAlternateSSL = true;
             request.Send();
         }
 
@@ -152,7 +151,6 @@ namespace CharismaSdk
             };
 
             request.SetHeader("Authorization", $"Bearer {token}");
-            request.UseAlternateSSL = true;
             request.Send();
             
             CharismaLogger.Log("Requesting conversation");
@@ -197,7 +195,6 @@ namespace CharismaSdk
            
             request.SetHeader("Authorization", $"Bearer {token}");			
             request.AddHeader("Content-Type", "application/json");
-            request.UseAlternateSSL = true;
             request.Send();
         }
 
@@ -231,7 +228,6 @@ namespace CharismaSdk
            
             request.SetHeader("Authorization", $"Bearer {token}");			
             request.AddHeader("Content-Type", "application/json");
-            request.UseAlternateSSL = true;
             request.Send();
         }
 
@@ -526,6 +522,10 @@ namespace CharismaSdk
             DraftToken = draftToken;
         }
     }
+    
+    
+    
+    
     
     public class TokenResponseParams
     {

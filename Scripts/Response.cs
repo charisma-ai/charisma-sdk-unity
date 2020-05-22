@@ -17,7 +17,7 @@ namespace CharismaSdk
         /// </summary>
         [JsonConstructor]
         public Response(int conversationId, CharismaMessageType messageType, Message message, bool endStory,
-            bool tapToContinue, CharacterMood[] characterMoods, Memory[] memories, int eventId, ulong timestamp,
+            bool tapToContinue, CharacterMood[] characterMoods, Memory[] memories, string eventId, ulong timestamp,
             Impacts impacts)
         {
             this.ConversationId = conversationId;
@@ -27,7 +27,7 @@ namespace CharismaSdk
             this.CharacterMoods = characterMoods;
             this.TapToContinue = tapToContinue;
             this.Memories = memories;
-            this.EventId = eventId;
+            this.EventId = long.Parse(eventId);
             this.Timestamp = timestamp;
         }
 
@@ -66,7 +66,7 @@ namespace CharismaSdk
         /// </summary>
         public Memory[] Memories { get; }
         
-        public int EventId { get; }
+        public long EventId { get; }
         public ulong Timestamp { get; }
     }
 
