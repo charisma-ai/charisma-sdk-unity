@@ -14,7 +14,7 @@ namespace CharismaSdk
         public static async Task<Response> GenerateResponse(string charismaResponse)
         {
             var modifiedString = charismaResponse.Remove(charismaResponse.Length-1, 1).Remove(0, 11);
-            var message = await Task<Response>.Run(() => JsonConvert.DeserializeObject<Response>(modifiedString));
+            var message = await Task.Run(() => JsonConvert.DeserializeObject<Response>(modifiedString));
 
             return message;
         }

@@ -14,7 +14,11 @@ namespace CharismaSdk
             if (Instance != null && Instance != this)
                 Destroy(this.gameObject);
             else
+            {
                 Instance = this;
+                DontDestroyOnLoad(this);
+            }
+                
         }
 
         private void Update()
@@ -33,6 +37,11 @@ namespace CharismaSdk
             if(act == null) return;
             
             ExecuteOnMainThread.Enqueue(act);    
+        }
+
+        public static void Destroy()
+        {
+            Destroy(Instance.gameObject);
         }
     }
 }

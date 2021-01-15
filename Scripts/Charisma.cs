@@ -105,7 +105,6 @@ namespace CharismaSdk
             {
                 CharismaLogger.Log("Generating playthrough token with latest published version");
             }
-
             
             if (tokenParams.StoryVersion != 0 && tokenParams.StoryVersion != -1)
             {
@@ -381,8 +380,13 @@ namespace CharismaSdk
                 {
                     var response = await CharismaUtilities.GenerateResponse(packet.Payload);
 
+                    if (response.CharismaMessageType == CharismaMessageType.panel)
+                    {
+                        // TODO: implement solution
+                        return;
+                    }
+                    
                     OnMessage?.Invoke(response.ConversationId, response);
-
 
                     CharismaLogger.Log($"Received message");
                 }));
@@ -461,6 +465,28 @@ namespace CharismaSdk
         }
 
         /// <summary>
+        /// Start the story from selected scene.
+        /// </summary>
+        /// <param name="conversationId">Id of the conversation we want to resume.</param>
+        /// <param name="speechOptions">Speech settings for the interaction.</param>
+        public void Resume(int conversationId , SpeechOptions speechOptions = null)
+        {
+            if (!IsReadyToPlay)
+            {
+                Debug.LogError("Charisma: Socket not open. Connect before resuming the interaction");
+                return;
+            };
+            
+            // Initialise speech options
+            _speechOptions = speechOptions;
+
+            var resumeOptions = new ResumeOptions(conversationId, _speechOptions);			
+            _socket?.Emit("resume", resumeOptions);
+
+            CharismaLogger.Log("Resuming interaction");
+        }
+
+        /// <summary>
         /// Send a tap event to Charisma.
         /// </summary>
         /// <param name="conversationId">Id of the conversation the tap should be sent to.</param>
@@ -522,10 +548,6 @@ namespace CharismaSdk
             DraftToken = draftToken;
         }
     }
-    
-    
-    
-    
     
     public class TokenResponseParams
     {
@@ -591,7 +613,7 @@ namespace CharismaSdk
     public class StartOptions
     {
         /// <summary>
-        /// The options with which to start the interaction with Charisma.
+        /// Options with which to start the interaction with Charisma.
         /// </summary>
         /// <param name="conversationId">Id of the conversation to start.</param>
         /// <param name="sceneIndex">Index of the scene to start.</param>
@@ -605,6 +627,23 @@ namespace CharismaSdk
 
         public int conversationId { get; set; }
         public int sceneIndex { get; }
+        public SpeechOptions speechConfig { get; }
+    }
+    
+    public class ResumeOptions
+    {
+        /// <summary>
+        /// Options with which to resume a playthrough in Charisma.
+        /// </summary>
+        /// <param name="conversationId">Id of the conversation to resume.</param>
+        /// <param name="speechConfig">To use speech, pass speech options.</param>
+        public ResumeOptions(int conversationId, SpeechOptions speechConfig = null)
+        {
+            this.conversationId = conversationId;
+            this.speechConfig = speechConfig;
+        }
+
+        public int conversationId { get; set; }
         public SpeechOptions speechConfig { get; }
     }
 
