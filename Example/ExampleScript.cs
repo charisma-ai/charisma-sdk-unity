@@ -42,7 +42,7 @@ namespace CharismaSdk.Example
                 // Once we receive the callback with our token, we can create a new conversation.
                 Charisma.CreateConversation(token: token, callback: conversationId =>
                 {
-                    // We'll cache out conversation Id since we need  this to send replies and other events to Charisma.
+                    // We'll cache our conversation Id since we need this to send replies and other events to Charisma.
                     this._conversationId = conversationId;
                     
                     // We can now create a new charisma object and pass it our token.
@@ -55,20 +55,32 @@ namespace CharismaSdk.Example
                         _charisma.Start(sceneIndex: startFromScene, conversationId: _conversationId, speechOptions: useSpeech? speechOptions : null);
                     });
                     
-                    // We can now subscribe to events from charisma.
+                    // We can now subscribe to message events from charisma.
                     _charisma.OnMessage += (id, message) =>
                     {
+                        // If the message is a panel-node, we should operate on this data without trying to generate audio or access the text & character data of the node since panel-nodes have neither.
+                        if (message.MessageType == CharismaMessageType.panel)
+                        {
+                            CharismaLogger.Log("This is a panel node");
+                            
+                            // We can't generate speech or access character & text data so we return after we have checked if this is the end of the story.
+                            if(message.EndStory)
+                                _charisma.Disconnect();
+                            
+                            return;
+                        }
+                        
                         if (useSpeech)
                         {
-                            // Once we have received a message, we want to play the audio. To do this we run the GetClip method and wait for the callback which contains our audio clip, then pass it to the audio player.
-                            message.Message.Speech.Audio.GetClip(options: speechOptions, onAudioGenerated: (clip =>
+                            // Once we have received a message character message, we might want to play the audio. To do this we run the GetClip method and wait for the callback which contains our audio clip, then pass it to the audio player.
+                            message.Message.Speech?.Audio.GetClip(options: speechOptions, onAudioGenerated: (clip =>
                             {
                                 audioSource.clip = clip;
                                 audioSource.Play();
                             }));
                         }
                         
-                        text.text = ($"{message.Message.Character.Name}: {message.Message.Text}");
+                        text.text = ($"{message.Message.Character?.Name}: {message.Message?.Text}");
 
                         // If this is the end of the story, we disconnect from Charisma.
                         if(message.EndStory)

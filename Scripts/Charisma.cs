@@ -380,12 +380,6 @@ namespace CharismaSdk
                 {
                     var response = await CharismaUtilities.GenerateResponse(packet.Payload);
 
-                    if (response.CharismaMessageType == CharismaMessageType.panel)
-                    {
-                        // TODO: implement solution
-                        return;
-                    }
-                    
                     OnMessage?.Invoke(response.ConversationId, response);
 
                     CharismaLogger.Log($"Received message");

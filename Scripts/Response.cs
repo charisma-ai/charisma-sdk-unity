@@ -22,7 +22,7 @@ namespace CharismaSdk
             Impacts impacts)
         {
             this.ConversationId = conversationId;
-            this.CharismaMessageType = type;
+            this.MessageType = type;
             this.Message = message;
             this.EndStory = endStory;
             this.CharacterMoods = characterMoods;
@@ -40,7 +40,7 @@ namespace CharismaSdk
         /// <summary>
         /// The type of this message.
         /// </summary>
-        public CharismaMessageType CharismaMessageType { get; }
+        public CharismaMessageType MessageType { get; }
         
         /// <summary>
         /// Contents of the message.
