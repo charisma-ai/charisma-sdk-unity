@@ -19,7 +19,7 @@ namespace CharismaSdk
     {
         #region Static Variables
 
-        private const string BaseUrl = "https://charisma-server-staging.herokuapp.com";
+        private const string BaseUrl = "https://api.charisma.ai";
 
         #endregion
 
