@@ -8,6 +8,7 @@ using BestHTTP.SocketIO.Transports;
 using Newtonsoft.Json;
 using PlatformSupport.Collections.ObjectModel;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace CharismaSdk
 {
@@ -18,7 +19,7 @@ namespace CharismaSdk
     {
         #region Static Variables
 
-        private const string BaseUrl = "https://api.charisma.ai";
+        private const string BaseUrl = "https://charisma-server-staging.herokuapp.com";
 
         #endregion
 
@@ -33,7 +34,7 @@ namespace CharismaSdk
                     HTTPUpdateDelegator.IsThreaded = true;
                 
                 // Create the coroutine consumer
-                GameObject.Instantiate(Resources.Load<MainThreadConsumer>
+                Object.Instantiate(Resources.Load<MainThreadConsumer>
                     ("Prefabs/MainThreadConsumer"));   
                 
                 CharismaLogger.Log("Set up complete!");
@@ -78,7 +79,7 @@ namespace CharismaSdk
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError($"Could not deserialize token. Is your debug token up to date?: {e}");
+                        Debug.LogError($"Could not deserialize token. Are you using the correct API key?: {e}");
                         throw;
                     }
                     
@@ -87,17 +88,17 @@ namespace CharismaSdk
                 RawData = requestParams
             };
             
-            // Only pass the user token if we are debugging
-            if (tokenParams.StoryVersion == -1 && !string.IsNullOrEmpty(tokenParams.DraftToken))
+            // Only pass the API key if we are debugging
+            if (tokenParams.StoryVersion == -1 && !string.IsNullOrEmpty(tokenParams.ApiKey))
             {
-                request.SetHeader("Authorization", $"Bearer {tokenParams.DraftToken}");
-                CharismaLogger.Log("Using user draft token to generate playthrough");
+                request.SetHeader("Authorization", $"API-Key {tokenParams.ApiKey}");
+                CharismaLogger.Log("Using API key to generate playthrough");
             }
             
-            // If the draft token is null or nonexistent, throw error
-            if (tokenParams.StoryVersion == -1 && string.IsNullOrEmpty(tokenParams.DraftToken))
+            // If the API key is null or nonexistent, throw error
+            if (tokenParams.StoryVersion == -1 && string.IsNullOrEmpty(tokenParams.ApiKey))
             {
-                Debug.LogError("Please provide a draft token in order to play the draft version");
+                Debug.LogError("Please provide an API key in order to play the draft version");
                 return;
             }
             
@@ -525,21 +526,21 @@ namespace CharismaSdk
     {
         public int StoryId { get; }
         public int StoryVersion { get; }
-        public string DraftToken { get; }
+        public string ApiKey { get; }
         
         /// <summary>
         /// Charisma will generate a play-through token based on this setting.
         /// </summary>
         /// <param name="storyId">Id of the story we want to interact with.</param>
         /// <param name="storyVersion">Version of the story we want to interact with.
-        ///  - In order to play the draft version of the story, set this to -1. A Draft Token also has to be supplied.
+        ///  - In order to play the draft version of the story, set this to -1. A an api key also has to be supplied.
         ///  - In order to play the latest published version of this story, this to 0.</param>
-        /// <param name="draftToken">Token from the Charisma website.</param>
-        public GetPlaythroughTokenParams(int storyId, int storyVersion, string draftToken = null)
+        /// <param name="apiKey">Api key from the Charisma website.</param>
+        public GetPlaythroughTokenParams(int storyId, int storyVersion, string apiKey = null)
         {
             StoryId = storyId;
             StoryVersion = storyVersion;
-            DraftToken = draftToken;
+            ApiKey = apiKey;
         }
     }
     

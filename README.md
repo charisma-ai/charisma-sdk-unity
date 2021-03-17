@@ -6,11 +6,11 @@ If you have any questions or issues, please contact us at: oscar@charisma.ai
 
 Download the contents of this repo, extract it to a folder of your choice and then import the folder to your Unity Project.
 
-If there are errors concerning Newtonsoft's Json Serializer, import the latest Newtonsoft.Json package from NuGet into your project.
+If you are getting errors from the Newtonsoft Json Serializer, import the latest Newtonsoft.Json package from NuGet into your project.
 
 ## Important Settings
 
-The following sections describe some the most important properties you will encounter using the SDK.
+The following sections describe usage of the SDK.
 
 #### Story Id
 
@@ -29,7 +29,7 @@ This is the version of the story you want to play.
 
 - To play a specific, published, version of your story, set the number to that particular version.
 
-- To play the draft version, set the number to -1. To do this, you must also supply a Debug Token. More on how to get your Debug Token below.
+- To play the draft version, set the number to -1. To do this, you must also supply your API key.
 
 Pass this in the `CharismaTokenSettings` object.
 
@@ -43,17 +43,11 @@ Pass this object in the Start function whenever you start a playthrough or in a 
 
 **IMPORTANT:** Wav files can only be generated on Windows. Having this option selected on any other platform will result in an error.
 
-#### Debug Token
+#### API key
 
-If you want to debug your draft version (Unpublished), the Story Version needs to be set to -1.
+An `apiKey` should now be used for authentication for playthrough token creation instead of `draftToken`. This is now the recommended way to authenticate as API keys do not expire (unless regenerated) and are more secure than the `draftToken` if compromised. `draftToken `should no longer be used. However, please make sure to not share the API key with anyone you do not trust, and strip the key from any public builds as before.
 
-You also need to retrieve your token from the Charisma website. To do this, go the Charisma website, log in, right-click to inspect the site, navigate to storage and copy the `token` cookie to the "Debug token"-field.
-
-Pass this in the `CharismaTokenSettings` object.
-
-**IMPORTANT:** This token currently has an expiry time of 30 days. If you are having trouble accessing your draft version, check if the token has expired.
-
-![Token](https://i.ibb.co/hfJk0H7/Token.png)
+![API key](https://i.ibb.co/X86bNVK/API-key.png)
 
 ## Example
 

@@ -10,7 +10,7 @@ namespace CharismaSdk.Example
     {
         [Header(header: "Charisma")]
         public AudioSource audioSource;
-        public string draftToken;
+        public string apiKey;
         public bool showLog;
         public int storyId;
         public int storyVersion;
@@ -33,11 +33,11 @@ namespace CharismaSdk.Example
             // The Charisma logger logs events to and from Charisma.
             CharismaLogger.IsActive = showLog;
 
-            // We create the config of our token here, based on the settings we have defined in the inspector.
-            var setting = new GetPlaythroughTokenParams(storyId: storyId, storyVersion: storyVersion, draftToken: draftToken);
+            // We create the config of our token, based on the settings we have defined in the inspector, here.
+            var playthroughTokenParams = new GetPlaythroughTokenParams(storyId: storyId, storyVersion: storyVersion, apiKey: apiKey);
             
             // We use these settings to create a play-through token.
-            Charisma.CreatePlaythroughToken(tokenParams: setting, callback: token =>
+            Charisma.CreatePlaythroughToken(tokenParams: playthroughTokenParams, callback: token =>
             {
                 // Once we receive the callback with our token, we can create a new conversation.
                 Charisma.CreateConversation(token: token, callback: conversationId =>
@@ -51,8 +51,10 @@ namespace CharismaSdk.Example
                     // We can now connect to Charisma. Once we receive the ready callback, we can start our play-through.
                     _charisma.Connect(onReadyCallback: () =>
                     {
+                        speechOptions = new SpeechOptions(SpeechOptions.AudioOutput.Buffer, SpeechOptions.Encoding.Ogg);
+                        
                         // In the start function, we pass the scene we want to start from, the conversationId we cached earlier, and the speech options from the inspector. 
-                        _charisma.Start(sceneIndex: startFromScene, conversationId: _conversationId, speechOptions: useSpeech? speechOptions : null);
+                        _charisma.Start(sceneIndex: startFromScene, conversationId: _conversationId, speechOptions: speechOptions);
                     });
                     
                     // We can now subscribe to message events from charisma.
