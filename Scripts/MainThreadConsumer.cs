@@ -18,12 +18,12 @@ namespace CharismaSdk
                 Instance = this;
                 DontDestroyOnLoad(this);
             }
-                
+
         }
 
         private void Update()
         {
-            while (ExecuteOnMainThread.Count > 0) 
+            while (ExecuteOnMainThread.Count > 0)
                 ExecuteOnMainThread.Dequeue()?.Invoke();
         }
 
@@ -34,9 +34,9 @@ namespace CharismaSdk
 
         public void Enqueue(Action act)
         {
-            if(act == null) return;
-            
-            ExecuteOnMainThread.Enqueue(act);    
+            if (act == null) return;
+
+            ExecuteOnMainThread.Enqueue(act);
         }
 
         public static void Destroy()

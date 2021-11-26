@@ -46,3 +46,6 @@ sysinfo.txt
 # Media
 *.mov
 *.mp4
+
+# Other
+.vscode

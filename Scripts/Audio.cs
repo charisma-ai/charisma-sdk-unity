@@ -24,17 +24,17 @@ namespace CharismaSdk
             var waveStream = WaveFormatConversionStream.CreatePcmStream(mp3Audio);
             // Convert to WAV data
             var wav = new Wav(AudioMemStream(waveStream).ToArray());
-            
-            var audioClip = AudioClip.Create("CharismaSpeech", wav.SampleCount, 1,wav.Frequency, false);
+
+            var audioClip = AudioClip.Create("CharismaSpeech", wav.SampleCount, 1, wav.Frequency, false);
             audioClip.SetData(wav.LeftChannel, 0);
             // Return the clip
             return audioClip;
         }
-        
+
         private static MemoryStream AudioMemStream(WaveStream waveStream)
         {
             var outputStream = new MemoryStream();
-            
+
             using (var waveFileWriter = new WaveFileWriter(outputStream, waveStream.WaveFormat))
             {
                 var bytes = new byte[waveStream.Length];
@@ -47,7 +47,7 @@ namespace CharismaSdk
         }
 
         #endregion
-        
+
         [JsonConstructor]
         public Audio(byte[] data, string type, string url)
         {
@@ -62,12 +62,12 @@ namespace CharismaSdk
         /// <returns></returns>
         public string GetClip()
         {
-            if(string.IsNullOrEmpty(Url))
+            if (string.IsNullOrEmpty(Url))
                 throw new NullReferenceException("There was no audio Url available. Check your audio settings.");
 
             return Url;
         }
-        
+
         /// <summary>
         /// Generates an audioClip.
         /// </summary>
@@ -86,43 +86,43 @@ namespace CharismaSdk
             switch (options.encoding)
             {
                 case "mp3":
-                {
-                    var tempFile = Application.persistentDataPath + "/bytes.mp3";
+                    {
+                        var tempFile = Application.persistentDataPath + "/bytes.mp3";
 
-                    if (Data != null)
-                        File.WriteAllBytes(tempFile, Data);
+                        if (Data != null)
+                            File.WriteAllBytes(tempFile, Data);
 
-                    var clip = new WWW("file://" + tempFile);
-                    while (!clip.isDone)
-                        yield return null;
-                
-                    // GenerateAudio the clip
-                    Clip = FromMp3Data(clip.bytes);
-                
-                    action.Invoke(Clip);
-                
-                    CharismaLogger.Log("Generated audio");
-                    break;
-                }
+                        var clip = new WWW("file://" + tempFile);
+                        while (!clip.isDone)
+                            yield return null;
+
+                        // GenerateAudio the clip
+                        Clip = FromMp3Data(clip.bytes);
+
+                        action.Invoke(Clip);
+
+                        CharismaLogger.Log("Generated audio");
+                        break;
+                    }
                 case "ogg":
-                {
-                    var tempFile = Application.persistentDataPath + "/bytes.ogg";
+                    {
+                        var tempFile = Application.persistentDataPath + "/bytes.ogg";
 
-                    if (Data != null)
-                        File.WriteAllBytes(tempFile, Data);
+                        if (Data != null)
+                            File.WriteAllBytes(tempFile, Data);
 
-                    var clip = new WWW("file://" + tempFile);
-                    while (!clip.isDone)
-                        yield return null;
-                
-                    // GenerateAudio the clip
-                    Clip = clip.GetAudioClip(false, false, AudioType.OGGVORBIS);
-                
-                    action.Invoke(Clip);
-                
-                    CharismaLogger.Log("Generated audio");
-                    break;
-                }
+                        var clip = new WWW("file://" + tempFile);
+                        while (!clip.isDone)
+                            yield return null;
+
+                        // GenerateAudio the clip
+                        Clip = clip.GetAudioClip(false, false, AudioType.OGGVORBIS);
+
+                        action.Invoke(Clip);
+
+                        CharismaLogger.Log("Generated audio");
+                        break;
+                    }
                 default:
                     throw new NotImplementedException();
             }
@@ -133,23 +133,23 @@ namespace CharismaSdk
         /// Audio type.
         /// </summary>
         public string Type { get; }
-        
+
         /// <summary>
         /// Raw bytes.
         /// </summary>
         public byte[] Data { get; }
-        
+
         /// <summary>
         /// Generated audio clip.
         /// </summary>
         public AudioClip Clip { get; private set; }
-        
+
         /// <summary>
         /// Url of this audio clip. Only available if Speech setting is set to Url.
         /// </summary>
         public string Url { get; }
     }
-    
+
 
     public class Speech
     {
@@ -164,19 +164,19 @@ namespace CharismaSdk
         /// Audio information from this response.
         /// </summary>
         public Audio Audio { get; }
-        
+
         /// <summary>
         /// Duration of the audio from this response.
         /// </summary>
         public float Duration { get; set; }
     }
-    
+
     [Serializable]
     public class SpeechOptions
     {
         [Header("Wav only available on Windows")]
-        [SerializeField]private AudioOutput _audioOutput;
-        [SerializeField]private Encoding _encoding;
+        [SerializeField] private AudioOutput _audioOutput;
+        [SerializeField] private Encoding _encoding;
 
         public enum Encoding
         {
@@ -189,7 +189,7 @@ namespace CharismaSdk
             Url,
             Buffer
         }
-        
+
         /// <summary>
         /// Set the audio information coming back from Charisma.
         /// </summary>
@@ -200,7 +200,7 @@ namespace CharismaSdk
             this._audioOutput = output;
             this._encoding = encoding;
         }
-        
+
         public string encoding
         {
             get
@@ -208,16 +208,16 @@ namespace CharismaSdk
                 switch (_encoding)
                 {
                     case Encoding.Wav:
-                        return "mp3";                        
+                        return "mp3";
                     case Encoding.Ogg:
-                        return "ogg";                                            
+                        return "ogg";
                     default:
                         Debug.LogError("Unknown audio format");
                         return null;
-                }   
+                }
             }
         }
-        
+
         public string output
         {
             get
@@ -235,6 +235,6 @@ namespace CharismaSdk
             }
         }
     }
-    
-    
+
+
 }

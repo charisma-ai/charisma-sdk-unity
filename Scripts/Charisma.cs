@@ -30,19 +30,19 @@ namespace CharismaSdk
             try
             {
                 // Move HTTP updates to different thread
-                if(!HTTPUpdateDelegator.IsThreaded)
+                if (!HTTPUpdateDelegator.IsThreaded)
                     HTTPUpdateDelegator.IsThreaded = true;
-                
+
                 // Create the coroutine consumer
                 Object.Instantiate(Resources.Load<MainThreadConsumer>
-                    ("Prefabs/MainThreadConsumer"));   
-                
+                    ("Prefabs/MainThreadConsumer"));
+
                 CharismaLogger.Log("Set up complete!");
             }
             catch (Exception e)
             {
-                Debug.LogError($"Error: Failed to set up properly! {e}" );
-                
+                Debug.LogError($"Error: Failed to set up properly! {e}");
+
                 throw;
             }
         }
@@ -56,10 +56,10 @@ namespace CharismaSdk
         {
             var requestParams = tokenParams.StoryVersion != 0
                 ? Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(
-                    new {storyId = tokenParams.StoryId, version = tokenParams.StoryVersion}))
+                    new { storyId = tokenParams.StoryId, version = tokenParams.StoryVersion }))
                 : Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(
-                    new {storyId = tokenParams.StoryId}));
-            
+                    new { storyId = tokenParams.StoryId }));
+
             var request = new HTTPRequest(new Uri($"{BaseUrl}/play/token/"), HTTPMethods.Post, (
                 (originalRequest, response) =>
                 {
@@ -68,7 +68,7 @@ namespace CharismaSdk
                         Debug.LogError("Error:" + originalRequest.Response.DataAsText);
                         return;
                     }
-                    
+
                     var data = Encoding.UTF8.GetString(response.Data);
 
                     try
@@ -82,36 +82,36 @@ namespace CharismaSdk
                         Debug.LogError($"Could not deserialize token. Are you using the correct API key?: {e}");
                         throw;
                     }
-                    
+
                 }))
             {
                 RawData = requestParams
             };
-            
+
             // Only pass the API key if we are debugging
             if (tokenParams.StoryVersion == -1 && !string.IsNullOrEmpty(tokenParams.ApiKey))
             {
                 request.SetHeader("Authorization", $"API-Key {tokenParams.ApiKey}");
                 CharismaLogger.Log("Using API key to generate playthrough");
             }
-            
+
             // If the API key is null or nonexistent, throw error
             if (tokenParams.StoryVersion == -1 && string.IsNullOrEmpty(tokenParams.ApiKey))
             {
                 Debug.LogError("Please provide an API key in order to play the draft version");
                 return;
             }
-            
-            if(tokenParams.StoryVersion == 0 )
+
+            if (tokenParams.StoryVersion == 0)
             {
                 CharismaLogger.Log("Generating playthrough token with latest published version");
             }
-            
+
             if (tokenParams.StoryVersion != 0 && tokenParams.StoryVersion != -1)
             {
                 CharismaLogger.Log($"Generating playthrough token with version {tokenParams.StoryVersion} of the story");
             }
-            
+
             request.AddHeader("Content-Type", "application/json");
             request.Send();
         }
@@ -130,8 +130,8 @@ namespace CharismaSdk
                     {
                         Debug.LogError("Error:" + originalRequest.Response.DataAsText);
                         return;
-                    } 
-                   
+                    }
+
                     var data = Encoding.UTF8.GetString(response.Data);
 
                     try
@@ -144,7 +144,7 @@ namespace CharismaSdk
                         Debug.LogError($"Could not generate conversation; {e}");
                         throw;
                     }
-                    
+
                 }))
             {
                 RawData = Encoding.UTF8.GetBytes(token)
@@ -152,7 +152,7 @@ namespace CharismaSdk
 
             request.SetHeader("Authorization", $"Bearer {token}");
             request.Send();
-            
+
             CharismaLogger.Log("Requesting conversation");
         }
 
@@ -165,16 +165,16 @@ namespace CharismaSdk
         /// <param name="callback">Called when the mood has successfully been set.</param>
         public static void SetMood(string token, string characterName, Mood mood, Action callback = null)
         {
-            
+
             if (mood == null || characterName == null)
             {
                 Debug.LogError("Charisma: You need to provide both a character name and a character mood modifier.");
                 return;
             }
-            
+
             var newMood = new SetMoodParams(characterName, mood);
             CharismaLogger.Log($"Setting new mood for {characterName}: CharismaUtilities.ToJson(newMood)");
-            
+
             var request = new HTTPRequest(
                 new Uri($"{BaseUrl}/play/set-mood"), HTTPMethods.Post, (
                     (originalRequest, response) =>
@@ -184,7 +184,7 @@ namespace CharismaSdk
                             Debug.LogError("Error:" + originalRequest.Response.DataAsText);
                             return;
                         }
-                        
+
                         CharismaLogger.Log($"Updated mood of '{characterName}'");
 
                         callback?.Invoke();
@@ -192,8 +192,8 @@ namespace CharismaSdk
             {
                 RawData = Encoding.UTF8.GetBytes(CharismaUtilities.ToJson(newMood))
             };
-           
-            request.SetHeader("Authorization", $"Bearer {token}");			
+
+            request.SetHeader("Authorization", $"Bearer {token}");
             request.AddHeader("Content-Type", "application/json");
             request.Send();
         }
@@ -208,7 +208,7 @@ namespace CharismaSdk
         public static void SetMemory(string token, string recallValue, string saveValue, Action callback = null)
         {
             var memory = new SetMemoryParams(recallValue, saveValue);
-            
+
             var request = new HTTPRequest(
                 new Uri($"{BaseUrl}/play/set-memory/"), HTTPMethods.Post, (
                 (originalRequest, response) =>
@@ -218,15 +218,15 @@ namespace CharismaSdk
                         Debug.LogError("Error:" + originalRequest.Response.DataAsText);
                         return;
                     }
-                    
+
                     CharismaLogger.Log($"Set memory - '{memory.memoryRecallValue}' with value '{memory.saveValue}'");
                     callback?.Invoke();
                 }))
             {
                 RawData = Encoding.UTF8.GetBytes(CharismaUtilities.ToJson(memory))
             };
-           
-            request.SetHeader("Authorization", $"Bearer {token}");			
+
+            request.SetHeader("Authorization", $"Bearer {token}");
             request.AddHeader("Content-Type", "application/json");
             request.Send();
         }
@@ -234,7 +234,7 @@ namespace CharismaSdk
         #endregion
 
         #region Properties
-        
+
         /// <summary>
         /// Returns true if the socket is open.
         /// </summary>
@@ -258,7 +258,7 @@ namespace CharismaSdk
         public SpeechOptions SpeechOptions
         {
             get { return _speechOptions; }
-            set { _speechOptions = value; } 
+            set { _speechOptions = value; }
         }
 
         #endregion
@@ -276,21 +276,21 @@ namespace CharismaSdk
         /// Called when a new message has been generated by Charisma.
         /// </summary>
         public event MessageDelegate OnMessage;
-        
+
         /// <summary>
         /// Called when a character has started typing.
         /// </summary>
         public event TypingDelegate OnStartTyping;
-        
+
         /// <summary>
         /// Called when a character has stopped typing.
         /// </summary>
         public event TypingDelegate OnStopTyping;
-        
+
         #endregion
 
         #region MemberVariables
-        
+
         private SocketManager _socketManager;
         private Socket _socket;
         private SpeechOptions _speechOptions;
@@ -328,53 +328,55 @@ namespace CharismaSdk
         #endregion
 
         #region Connect / Disconnect
-        
+
         /// <summary>
         /// Connect to Charisma
         /// </summary>
         /// <param name="onReadyCallback">Called when successfully connected to Charisma.</param>
         public void Connect(Action onReadyCallback)
         {
-             if(IsConnected) return;
-             
+            if (IsConnected) return;
+
             var options = new SocketOptions
             {
                 ConnectWith = TransportTypes.WebSocket,
-                AdditionalQueryParams = new ObservableDictionary<string, string> {{"token", Token}}
+                AdditionalQueryParams = new ObservableDictionary<string, string> { { "token", Token } }
             };
 
             _socketManager = new SocketManager(new Uri($"{BaseUrl}/socket.io/"), options)
             {
                 Encoder = new LitJsonEncoder()
             };
-            
+
             _socket = _socketManager.GetSocket("/play");
-            
+
             _socket.On(SocketIOEventTypes.Connect, (socket, packet, args) =>
             {
                 CharismaLogger.Log("Connected to socket");
             });
-			
-            _socket.On("error", (socket, packet, args) => {		
-				
-                Debug.LogError(args[0].ToString());								
-            });		
-			
-            _socket.On("status", (socket, packet, args) => {
 
-                if ((string) args[0] == "ready")
-                {
-                    CharismaLogger.Log("Ready to begin play");
-                    IsReadyToPlay = true;
-                    
-                    onReadyCallback?.Invoke();
-                }
-                else
-                {
-                    Debug.LogError("Charisma: Failed to set up websocket connection to server");
-                }
-            });
-			
+            _socket.On("error", (socket, packet, args) =>
+           {
+
+               Debug.LogError(args[0].ToString());
+           });
+
+            _socket.On("status", (socket, packet, args) =>
+           {
+
+               if ((string)args[0] == "ready")
+               {
+                   CharismaLogger.Log("Ready to begin play");
+                   IsReadyToPlay = true;
+
+                   onReadyCallback?.Invoke();
+               }
+               else
+               {
+                   Debug.LogError("Charisma: Failed to set up websocket connection to server");
+               }
+           });
+
             _socket.On("message", (socket, packet, args) =>
             {
                 MainThreadConsumer.Instance.Enqueue((async () =>
@@ -386,22 +388,22 @@ namespace CharismaSdk
                     CharismaLogger.Log($"Received message");
                 }));
             });
-			
+
             _socket.On("start-typing", (socket, packet, args) =>
             {
 
                 OnStartTyping?.Invoke(JsonConvert.DeserializeObject<Conversation>(packet.Payload).ConversationId);
-                
+
                 CharismaLogger.Log("Start typing");
             });
-			
+
             _socket.On("stop-typing", (socket, packet, args) =>
             {
                 OnStopTyping?.Invoke(JsonConvert.DeserializeObject<Conversation>(packet.Payload).ConversationId);
-                
+
                 CharismaLogger.Log("Stop typing");
             });
-			
+
             _socket.On("problem", (socket, packet, args) =>
             {
                 CharismaLogger.Log(JsonConvert.DeserializeObject<CharismaError>(packet.Payload).Error);
@@ -411,7 +413,7 @@ namespace CharismaSdk
         // Disconnect from the current interaction.
         public void Disconnect()
         {
-            if(!_socket.IsOpen) return;
+            if (!_socket.IsOpen) return;
 
             try
             {
@@ -427,12 +429,12 @@ namespace CharismaSdk
                 Debug.LogError($"Charisma: failed to disconnect: {e}");
                 return;
             }
-            
+
             CharismaLogger.Log("Successfully disconnected");
         }
-        
+
         #endregion
-        
+
         #region Interaction
 
         /// <summary>
@@ -448,14 +450,14 @@ namespace CharismaSdk
                 Debug.LogError("Charisma: Socket not open. Connect before starting the interaction");
                 return;
             };
-            
+
             // Initialise speech options
             _speechOptions = speechOptions;
 
-            var startOptions = new StartOptions(conversationId, sceneIndex, speechOptions);			
-            _socket?.Emit("start", startOptions);	
+            var startOptions = new StartOptions(conversationId, sceneIndex, speechOptions);
+            _socket?.Emit("start", startOptions);
 
-            
+
             CharismaLogger.Log("Starting interaction");
         }
 
@@ -464,18 +466,18 @@ namespace CharismaSdk
         /// </summary>
         /// <param name="conversationId">Id of the conversation we want to resume.</param>
         /// <param name="speechOptions">Speech settings for the interaction.</param>
-        public void Resume(int conversationId , SpeechOptions speechOptions = null)
+        public void Resume(int conversationId, SpeechOptions speechOptions = null)
         {
             if (!IsReadyToPlay)
             {
                 Debug.LogError("Charisma: Socket not open. Connect before resuming the interaction");
                 return;
             };
-            
+
             // Initialise speech options
             _speechOptions = speechOptions;
 
-            var resumeOptions = new ResumeOptions(conversationId, _speechOptions);			
+            var resumeOptions = new ResumeOptions(conversationId, _speechOptions);
             _socket?.Emit("resume", resumeOptions);
 
             CharismaLogger.Log("Resuming interaction");
@@ -495,11 +497,11 @@ namespace CharismaSdk
 
             var tapOptions = new Tap(conversationId, _speechOptions);
             _socket?.Emit("tap", tapOptions);
-            
+
             CharismaLogger.Log("Tap");
         }
-        
-        
+
+
         /// <summary>
         /// Send player response to Charisma.
         /// </summary>
@@ -515,8 +517,8 @@ namespace CharismaSdk
 
             var playerMessage = new Reply(message, conversationId, _speechOptions);
             _socket?.Emit("reply", playerMessage);
-            
-            CharismaLogger.Log($"Sending player response '{message}' to conversation {conversationId}");  
+
+            CharismaLogger.Log($"Sending player response '{message}' to conversation {conversationId}");
         }
 
         #endregion
@@ -527,7 +529,7 @@ namespace CharismaSdk
         public int StoryId { get; }
         public int StoryVersion { get; }
         public string ApiKey { get; }
-        
+
         /// <summary>
         /// Charisma will generate a play-through token based on this setting.
         /// </summary>
@@ -543,7 +545,7 @@ namespace CharismaSdk
             ApiKey = apiKey;
         }
     }
-    
+
     public class TokenResponseParams
     {
         /// <summary>
@@ -557,27 +559,27 @@ namespace CharismaSdk
             Token = token;
         }
     }
-    
+
     public class Conversation
     {
         /// <summary>
         /// The id of the conversation we have just initialized.
         /// </summary>
         public int ConversationId { get; }
-        
+
         [JsonConstructor]
         public Conversation(int conversationId)
         {
             this.ConversationId = conversationId;
         }
     }
-    
+
     public class Reply
     {
         public int conversationId;
         public string text;
         public SpeechOptions speechConfig;
-        
+
         /// <summary>
         /// Player response to Charisma.
         /// </summary>
@@ -592,19 +594,19 @@ namespace CharismaSdk
             this.conversationId = conversationId;
         }
     }
-    
+
     public class Tap
     {
         public int conversationId;
         public SpeechOptions speechConfig;
-        
+
         public Tap(int conversationId, SpeechOptions speechConfig = null)
         {
             this.conversationId = conversationId;
             this.speechConfig = speechConfig;
         }
     }
-    
+
     public class StartOptions
     {
         /// <summary>
@@ -617,14 +619,14 @@ namespace CharismaSdk
         {
             this.conversationId = conversationId;
             this.sceneIndex = sceneIndex;
-            this.speechConfig = speechConfig;			
+            this.speechConfig = speechConfig;
         }
 
         public int conversationId { get; set; }
         public int sceneIndex { get; }
         public SpeechOptions speechConfig { get; }
     }
-    
+
     public class ResumeOptions
     {
         /// <summary>

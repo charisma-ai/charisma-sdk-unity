@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace CharismaSdk
-{   
+{
     public enum CharismaMessageType
     {
         character,
         media,
         panel
     }
-    
+
     public class Response
     {
         /// <summary>
@@ -36,37 +36,37 @@ namespace CharismaSdk
         /// The conversation id of the message.
         /// </summary>
         public int ConversationId { get; }
-        
+
         /// <summary>
         /// The type of this message.
         /// </summary>
         public CharismaMessageType MessageType { get; }
-        
+
         /// <summary>
         /// Contents of the message.
         /// </summary>
         public Message Message { get; }
-        
+
         /// <summary>
         /// True if the node this message was generated from has "End Story" activated.
         /// </summary>
         public bool EndStory { get; }
-        
+
         /// <summary>
         /// True if the node this message was generate from has "Tap To Continue" activated.
         /// </summary>
         public bool TapToContinue { get; }
-        
+
         /// <summary>
         /// List of character moods which has changed on this node.
         /// </summary>
         public CharacterMood[] CharacterMoods { get; }
-        
+
         /// <summary>
         /// List of memories which has changed since the last character node.
         /// </summary>
         public Memory[] Memories { get; }
-        
+
         public long EventId { get; }
         public ulong Timestamp { get; }
     }
@@ -79,7 +79,7 @@ namespace CharismaSdk
             Id = id;
             Impact = impact;
         }
-        
+
         public int[] Id { get; }
         public string Impact { get; }
     }

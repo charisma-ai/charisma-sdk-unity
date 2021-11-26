@@ -7,7 +7,7 @@
         private static float BytesToFloat(byte firstByte, byte secondByte)
         {
             // convert two bytes to one short (little endian)
-            var s = (short) ((secondByte << 8) | firstByte);
+            var s = (short)((secondByte << 8) | firstByte);
             // convert to range from -1 to (just below) 1
             return s / 32768.0F;
         }
@@ -17,7 +17,7 @@
             var value = 0;
             for (var i = 0; i < 4; i++)
             {
-                value |= ((int) bytes[offset + i]) << (i * 8);
+                value |= ((int)bytes[offset + i]) << (i * 8);
             }
 
             return value;
