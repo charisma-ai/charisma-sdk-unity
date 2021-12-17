@@ -18,15 +18,15 @@ namespace CharismaSDK.Events
         /// </summary>
         [JsonConstructor]
         public MessageEvent(int conversationId, MessageType type, Message message, bool endStory,
-            bool tapToContinue, CharacterMood[] characterMoods, Memory[] memories, string eventId, ulong timestamp,
+            bool tapToContinue, Emotions[] emotions, Memory[] memories, string eventId, ulong timestamp,
             Impacts impacts)
         {
             this.ConversationId = conversationId;
             this.MessageType = type;
             this.Message = message;
             this.EndStory = endStory;
-            this.CharacterMoods = characterMoods;
             this.TapToContinue = tapToContinue;
+            this.Emotions = emotions;
             this.Memories = memories;
             this.EventId = long.Parse(eventId);
             this.Timestamp = timestamp;
@@ -53,17 +53,17 @@ namespace CharismaSDK.Events
         public bool EndStory { get; }
 
         /// <summary>
-        /// True if the node this message was generate from has "Tap To Continue" activated.
+        /// True if the node this message was generated from has "Tap To Continue" activated.
         /// </summary>
         public bool TapToContinue { get; }
 
         /// <summary>
-        /// List of character moods which has changed on this node.
+        /// List of emotions that have changed since the last emitted node.
         /// </summary>
-        public CharacterMood[] CharacterMoods { get; }
+        public Emotion[] Emotions { get; }
 
         /// <summary>
-        /// List of memories which has changed since the last character node.
+        /// List of memories that have changed since the last emitted node.
         /// </summary>
         public Memory[] Memories { get; }
 
@@ -143,44 +143,6 @@ namespace CharismaSDK.Events
         public string Avatar { get; }
     }
 
-    public class CharacterMood
-    {
-        [JsonConstructor]
-        public CharacterMood(int id, string name, Mood mood)
-        {
-            this.Id = id;
-            this.Name = name;
-            this.Mood = mood;
-        }
-
-        public int Id { get; }
-        public string Name { get; }
-
-        /// <summary>
-        /// Contains the mood of this character.
-        /// </summary>
-        public Mood Mood { get; }
-    }
-
-    public class Mood
-    {
-        public int anger { get; set; }
-        public int trust { get; set; }
-        public int patience { get; set; }
-        public int happiness { get; set; }
-        public int fearlessness { get; set; }
-
-        [JsonConstructor]
-        public Mood(int happiness, int anger, int trust, int patience, int fearlessness)
-        {
-            this.happiness = happiness;
-            this.anger = anger;
-            this.trust = trust;
-            this.patience = patience;
-            this.fearlessness = fearlessness;
-        }
-    }
-
     [Serializable]
     public class Memory
     {
@@ -214,6 +176,28 @@ namespace CharismaSDK.Events
         {
             get => saveValue;
             set => saveValue = value;
+        }
+    }
+
+    [Serializable]
+    public class Emotion
+    {
+        public int id { get; set; }
+        public string name { get; set; }
+        public string avatar { get; set; }
+        public float moodPositivity { get; set; }
+        public float moodEnergy { get; set; }
+        public float playerRelationship { get; set; }
+
+        [JsonConstructor]
+        public Emotion(int id, string name, string avatar, float moodPositivity, float moodEnergy, float playerRelationship)
+        {
+            this.id = id;
+            this.name = name;
+            this.avatar = avatar;
+            this.moodPositivity = moodPositivity;
+            this.moodEnergy = moodEnergy;
+            this.playerRelationship = playerRelationship;
         }
     }
 }
