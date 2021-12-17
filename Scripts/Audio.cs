@@ -9,7 +9,7 @@ using UnityEngine;
 // Removes the WWW obsolete warning.
 #pragma warning disable 618
 
-namespace CharismaSdk
+namespace CharismaSDK
 {
     public class Audio
     {

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace CharismaSdk
+namespace CharismaSDK
 {
     public static class CharismaLogger
     {
@@ -12,7 +12,9 @@ namespace CharismaSdk
             // TODO: Add message types
 
             if (IsActive)
+            {
                 Debug.Log("CharismaLogger: " + message);
+            }
         }
     }
 }

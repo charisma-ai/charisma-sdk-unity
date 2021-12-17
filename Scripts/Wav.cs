@@ -1,4 +1,4 @@
-﻿namespace CharismaSdk
+﻿namespace CharismaSDK
 {
     public class Wav
     {
