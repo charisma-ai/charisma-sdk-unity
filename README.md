@@ -1,25 +1,30 @@
-# Unity SDK for Charisma.ai
+# Charisma SDK for Unity
 
-If you have any questions or issues, please contact us at: oscar@charisma.ai
+This Unity plugin is verified to work with projects using Unity version `2021.3` only. If you find the plugin also works in another version, feel free to submit a pull request to update this!
+
+If you have any questions or need a hand, please reach out to us at [hello@charisma.ai](mailto:hello@charisma.ai)!
+
+## Getting started
+
+**Important:** Before setting up the Charisma SDK for Unity, you’ll need to have created a web or game story (not an app story!), which requires a Charisma licence. Please visit the [licencing docs on our website](https://charisma.ai/docs/licencing) for more info!
+
+If you haven’t already, go ahead and create an Unity project. Make sure you are using a version of the engine that is supported by this plugin.
 
 ## Importing / Installing
 
 Download the contents of this repo, extract it to a folder of your choice and then import the folder to your Unity Project.
 
-If you are getting errors from the Newtonsoft Json Serializer, import the latest Newtonsoft.Json package from NuGet into your project.
+## Usage
 
-## Important Settings
-
-The following sections describe usage of the SDK.
+To create playthrough tokens, you’ll first need to find out your story ID, and optionally an API key and version of the story you want to play.
 
 #### Story Id
 
-The unique id of the story that you want to play. To find this, navigate to the Charisma website and click the story you want to play from Unity. The story id can be found in the URL in the following location:
-"https://charisma.ai/stories/:storyId".
+The `StoryId` is the unique ID of the story that you want to play. To find this, navigate to your story on the Charisma website, and copy the ID number after `/stories` in the URL.
+
+![StoryId](https://i.ibb.co/TcxRM8J/story-id.png)
 
 Pass this in the `CharismaTokenSettings` object.
-
-![StoryId](https://i.ibb.co/sPqS9n2/StoryId.png)
 
 #### Story Version
 
@@ -33,6 +38,12 @@ This is the version of the story you want to play.
 
 Pass this in the `CharismaTokenSettings` object.
 
+#### API key
+
+An `apiKey` should now be used for authentication for playthrough token creation instead of `draftToken`. This is now the recommended way to authenticate as API keys do not expire (unless regenerated) and are more secure than the `draftToken` if compromised. `draftToken `should no longer be used. However, please make sure to not share the API key with anyone you do not trust, and strip the key from any public builds as before.
+
+![API key](https://i.ibb.co/X86bNVK/API-key.png)
+
 #### Speech Options
 
 The output format of the audio received from Charisma. The default audio format is Ogg. Unless there are specific requirements that mean the format has to be Wav, it is recommended to keep it as Ogg.
@@ -43,18 +54,12 @@ Pass this object in the Start function whenever you start a playthrough or in a 
 
 **IMPORTANT:** Wav files can only be generated on Windows. Having this option selected on any other platform will result in an error.
 
-#### API key
-
-An `apiKey` should now be used for authentication for playthrough token creation instead of `draftToken`. This is now the recommended way to authenticate as API keys do not expire (unless regenerated) and are more secure than the `draftToken` if compromised. `draftToken `should no longer be used. However, please make sure to not share the API key with anyone you do not trust, and strip the key from any public builds as before.
-
-![API key](https://i.ibb.co/X86bNVK/API-key.png)
-
 ## Example
 
-A small example has been created to demonstrate how the startup flow works. To test it out, create a story and run the example scene.
+A small example has been created to demonstrate how the startup flow works. To test it out, create a story and run the example scene in the `example` folder.
 
-The script itself can be found in the example folder as well.
+The script itself can be found in the `example` folder as well.
 
 ## Known Issues
 
-- Some character voices do not convert to audio files properly, resulting in an FMOD error. The voices concerned are all named after Game of Thrones characters. Please avoid using these voices for the time being.
+- Some character voices (those provided by Google) do not convert to audio files properly, resulting in an FMOD error. Please avoid using these voices for the time being.
