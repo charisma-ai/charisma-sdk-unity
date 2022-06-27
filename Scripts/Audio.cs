@@ -46,12 +46,13 @@ namespace CharismaSDK
         #endregion
 
         /// <summary>
-        /// Generates an `AudioClip`.
+        /// Generates an `AudioClip` from a byte array.
         /// </summary>
-        /// <param name="encoding"> The encoding of the audio clip</param>
-        /// <param name="bytes"> The bytes of the audio clip</param>
-        /// <param name="onAudioGenerated"> Callback containing the generated audio clip</param>
+        /// <param name="encoding">The encoding of the audio clip</param>
+        /// <param name="bytes">The bytes of the audio clip</param>
+        /// <param name="onAudioGenerated">Callback containing the generated audio clip</param>
         /// <exception cref="NullReferenceException"></exception>
+        /// <exception cref="NotImplementedException"></exception>
         public static void GetAudioClip(string encoding, byte[] bytes, Action<AudioClip> onAudioGenerated)
         {
             if (!bytes.Any())
@@ -60,32 +61,62 @@ namespace CharismaSDK
             MainThreadConsumer.Instance.Consume(GenerateAudio(encoding, bytes, onAudioGenerated));
         }
 
-        private static IEnumerator GenerateAudio(string encoding, byte[] bytes, Action<AudioClip> callback)
+        /// <summary>
+        /// Generates an `AudioClip` from a URL.
+        /// </summary>
+        /// <param name="encoding">The encoding of the audio clip</param>
+        /// <param name="url">The URL of the audio clip</param>
+        /// <param name="onAudioGenerated">Callback containing the generated audio clip</param>
+        /// <exception cref="NotImplementedException"></exception>
+        public static void GetAudioClip(string encoding, string url, Action<AudioClip> onAudioGenerated)
         {
-            AudioType selectedEncoding;
+            MainThreadConsumer.Instance.Consume(GenerateAudio(encoding, url, onAudioGenerated));
+        }
+
+        private static AudioType GetAudioType(string encoding)
+        {
             if (encoding == "mp3")
             {
-                selectedEncoding = AudioType.MPEG;
+                return AudioType.MPEG;
             }
             else if (encoding == "ogg")
             {
-                selectedEncoding = AudioType.OGGVORBIS;
+                return AudioType.OGGVORBIS;
             }
             else if (encoding == "wav")
             {
-                selectedEncoding = AudioType.WAV;
+                return AudioType.WAV;
             }
             else
             {
                 throw new NotImplementedException();
             }
+        }
+
+        private static IEnumerator GenerateAudio(string encoding, byte[] bytes, Action<AudioClip> callback)
+        {
+            AudioType audioType = GetAudioType(encoding);
 
             var tempFile = Application.persistentDataPath + "/bytes.ogg";
 
             if (bytes != null)
                 File.WriteAllBytes(tempFile, bytes);
 
-            var request = UnityWebRequestMultimedia.GetAudioClip("file://" + tempFile, selectedEncoding);
+            var request = UnityWebRequestMultimedia.GetAudioClip("file://" + tempFile, audioType);
+            yield return request.SendWebRequest();
+            while (!request.isDone)
+                yield return null;
+
+            AudioClip clip = DownloadHandlerAudioClip.GetContent(request);
+
+            callback.Invoke(clip);
+        }
+
+        private static IEnumerator GenerateAudio(string encoding, string url, Action<AudioClip> callback)
+        {
+            AudioType audioType = GetAudioType(encoding);
+
+            var request = UnityWebRequestMultimedia.GetAudioClip(url, audioType);
             yield return request.SendWebRequest();
             while (!request.isDone)
                 yield return null;
@@ -152,10 +183,10 @@ namespace CharismaSDK
             {
                 switch (_audioOutput)
                 {
-                    //case AudioOutput.Url:
-                    //    return "url";
+                    // case AudioOutput.Url:
+                    //     return "url";
                     case AudioOutput.Buffer:
-                        return "buffer";
+                       return "buffer";
                     default:
                         Debug.LogError("Unknown output method");
                         return null;
