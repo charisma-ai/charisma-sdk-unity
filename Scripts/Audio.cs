@@ -2,7 +2,7 @@
 using System.Collections;
 using System.IO;
 using System.Linq;
-using NAudio.Wave;
+//using NAudio.Wave;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -15,36 +15,36 @@ namespace CharismaSDK
     {
         #region Static Methods
 
-        public static AudioClip FromMp3Data(byte[] data)
-        {
-            // Load the data into a stream
-            var mp3Stream = new MemoryStream(data);
-            // Convert the data in the stream to WAV format
-            var mp3Audio = new Mp3FileReader(mp3Stream);
-            var waveStream = WaveFormatConversionStream.CreatePcmStream(mp3Audio);
-            // Convert to WAV data
-            var wav = new Wav(AudioMemStream(waveStream).ToArray());
+        //public static AudioClip FromMp3Data(byte[] data)
+        //{
+        //    // Load the data into a stream
+        //    var mp3Stream = new MemoryStream(data);
+        //    // Convert the data in the stream to WAV format
+        //    var mp3Audio = new Mp3FileReader(mp3Stream);
+        //    var waveStream = WaveFormatConversionStream.CreatePcmStream(mp3Audio);
+        //    // Convert to WAV data
+        //    var wav = new Wav(AudioMemStream(waveStream).ToArray());
 
-            var audioClip = AudioClip.Create("CharismaSpeech", wav.SampleCount, 1, wav.Frequency, false);
-            audioClip.SetData(wav.LeftChannel, 0);
-            // Return the clip
-            return audioClip;
-        }
+        //    var audioClip = AudioClip.Create("CharismaSpeech", wav.SampleCount, 1, wav.Frequency, false);
+        //    audioClip.SetData(wav.LeftChannel, 0);
+        //    // Return the clip
+        //    return audioClip;
+        //}
 
-        private static MemoryStream AudioMemStream(WaveStream waveStream)
-        {
-            var outputStream = new MemoryStream();
+        //private static MemoryStream AudioMemStream(WaveStream waveStream)
+        //{
+        //    var outputStream = new MemoryStream();
 
-            using (var waveFileWriter = new WaveFileWriter(outputStream, waveStream.WaveFormat))
-            {
-                var bytes = new byte[waveStream.Length];
-                waveStream.Position = 0;
-                waveStream.Read(bytes, 0, Convert.ToInt32(waveStream.Length));
-                waveFileWriter.Write(bytes, 0, bytes.Length);
-                waveFileWriter.Flush();
-            }
-            return outputStream;
-        }
+        //    using (var waveFileWriter = new WaveFileWriter(outputStream, waveStream.WaveFormat))
+        //    {
+        //        var bytes = new byte[waveStream.Length];
+        //        waveStream.Position = 0;
+        //        waveStream.Read(bytes, 0, Convert.ToInt32(waveStream.Length));
+        //        waveFileWriter.Write(bytes, 0, bytes.Length);
+        //        waveFileWriter.Flush();
+        //    }
+        //    return outputStream;
+        //}
 
         #endregion
 
@@ -85,25 +85,25 @@ namespace CharismaSDK
         {
             switch (options.encoding)
             {
-                case "mp3":
-                    {
-                        var tempFile = Application.persistentDataPath + "/bytes.mp3";
+                //case "mp3":
+                //    {
+                //        var tempFile = Application.persistentDataPath + "/bytes.mp3";
 
-                        if (Data != null)
-                            File.WriteAllBytes(tempFile, Data);
+                //        if (Data != null)
+                //            File.WriteAllBytes(tempFile, Data);
 
-                        var clip = new WWW("file://" + tempFile);
-                        while (!clip.isDone)
-                            yield return null;
+                //        var clip = new WWW("file://" + tempFile);
+                //        while (!clip.isDone)
+                //            yield return null;
 
-                        // GenerateAudio the clip
-                        Clip = FromMp3Data(clip.bytes);
+                //        // GenerateAudio the clip
+                //        Clip = FromMp3Data(clip.bytes);
 
-                        action.Invoke(Clip);
+                //        action.Invoke(Clip);
 
-                        CharismaLogger.Log("Generated audio");
-                        break;
-                    }
+                //        CharismaLogger.Log("Generated audio");
+                //        break;
+                //    }
                 case "ogg":
                     {
                         var tempFile = Application.persistentDataPath + "/bytes.ogg";
@@ -153,22 +153,15 @@ namespace CharismaSDK
 
     public class Speech
     {
-        [JsonConstructor]
-        public Speech(Audio audio, float duration)
-        {
-            this.Audio = audio;
-            this.Duration = duration;
-        }
-
         /// <summary>
         /// Audio information from this response.
         /// </summary>
-        public Audio Audio { get; }
+        public Audio Audio;
 
         /// <summary>
         /// Duration of the audio from this response.
         /// </summary>
-        public float Duration { get; set; }
+        public float duration;
     }
 
     [Serializable]

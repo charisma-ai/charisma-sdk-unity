@@ -1,78 +1,52 @@
 using System;
+using System.Collections;
 using System.Text;
-using BestHTTP;
-using BestHTTP.Logger;
 using Newtonsoft.Json;
-using PlatformSupport.Collections.ObjectModel;
 using UnityEngine;
-using Object = UnityEngine.Object;
+using UnityEngine.Networking;
 
 namespace CharismaSDK
 {
     /// <summary>
     /// Interact with Charisma using this object.
     /// </summary>
-    public class CharismaAPI
+    public class CharismaAPI : MonoBehaviour
     {
         #region Static Variables
 
-        private const string BaseUrl = "https://api.charisma.ai";
+        private const string BaseUrl = "https://play.charisma.ai";
 
         #endregion
 
         #region Static Methods
 
-        public static void Setup()
+        private static byte[] SerializeBody(object value)
         {
-            HTTPUpdateDelegator.IsThreaded = true;
+            string json = JsonConvert.SerializeObject(value);
+            return Encoding.UTF8.GetBytes(json);
         }
 
         /// <summary>
-        /// Generate a new play-through.
+        /// Creates a new playthrough token.
         /// </summary>
-        /// <param name="tokenParams">Settings object for this play-through</param>
+        /// <param name="tokenParams">Settings object for this playthrough</param>
         /// <param name="callback">Called when a valid token has been generated</param>
-        public static void CreatePlaythroughToken(CreatePlaythroughTokenParams tokenParams, Action<string> callback)
+        public static IEnumerator CreatePlaythroughToken(
+            CreatePlaythroughTokenParams tokenParams,
+            Action<CreatePlaythroughTokenResponse> callback)
         {
-            var requestParams = tokenParams.StoryVersion != 0
-                ? Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(
-                    new { storyId = tokenParams.StoryId, version = tokenParams.StoryVersion }))
-                : Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(
-                    new { storyId = tokenParams.StoryId }));
+            object requestParams = tokenParams.StoryVersion != 0
+                ? new { storyId = tokenParams.StoryId, version = tokenParams.StoryVersion }
+                : new { storyId = tokenParams.StoryId };
 
-            var request = new HTTPRequest(new Uri($"{BaseUrl}/play/token/"), HTTPMethods.Post, (
-                (originalRequest, response) =>
-                {
-                    if (!response.IsSuccess)
-                    {
-                        Debug.LogError("Error:" + originalRequest.Response.DataAsText);
-                        return;
-                    }
-
-                    var data = Encoding.UTF8.GetString(response.Data);
-
-                    try
-                    {
-                        var deserialized = JsonConvert.DeserializeObject<CreatePlaythroughTokenResponse>(data);
-                        var token = deserialized.Token;
-                        callback?.Invoke(token);
-                        CharismaLogger.Log("Token request complete");
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogError($"Could not deserialize token. Are you using the correct API key?: {e}");
-                        throw;
-                    }
-
-                }))
-            {
-                RawData = requestParams
-            };
+            var request = UnityWebRequest.Put($"{BaseUrl}/play/token/", SerializeBody(requestParams));
+            request.method = "POST"; // hack to send POST to server instead of PUT
+            request.SetRequestHeader("Content-Type", "application/json");
 
             // Only pass the API key if we are debugging
             if (tokenParams.StoryVersion == -1 && !string.IsNullOrEmpty(tokenParams.ApiKey))
             {
-                request.SetHeader("Authorization", $"API-Key {tokenParams.ApiKey}");
+                request.SetRequestHeader("Authorization", $"API-Key {tokenParams.ApiKey}");
                 CharismaLogger.Log("Using API key to generate playthrough");
             }
 
@@ -80,7 +54,7 @@ namespace CharismaSDK
             if (tokenParams.StoryVersion == -1 && string.IsNullOrEmpty(tokenParams.ApiKey))
             {
                 Debug.LogError("Please provide an API key in order to play the draft version");
-                return;
+                yield break;
             }
 
             if (tokenParams.StoryVersion == 0)
@@ -93,8 +67,27 @@ namespace CharismaSDK
                 CharismaLogger.Log($"Generating playthrough token with version {tokenParams.StoryVersion} of the story");
             }
 
-            request.AddHeader("Content-Type", "application/json");
-            request.Send();
+            yield return request.SendWebRequest();
+
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Error:" + request.error);
+                yield break;
+            }
+
+            var data = Encoding.UTF8.GetString(request.downloadHandler.data);
+
+            try
+            {
+                var deserialized = JsonConvert.DeserializeObject<CreatePlaythroughTokenResponse>(data);
+                callback?.Invoke(deserialized);
+                CharismaLogger.Log("Token request complete");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Could not deserialize token. Are you using the correct API key?: {e}");
+                throw;
+            }
         }
 
         /// <summary>
@@ -102,40 +95,35 @@ namespace CharismaSDK
         /// </summary>
         /// <param name="token">Valid play-through token.</param>
         /// <param name="callback">Called when a conversation has been generated.</param>
-        public static void CreateConversation(string token, Action<int> callback)
+        public static IEnumerator CreateConversation(string token, Action<string> callback)
         {
-            var request = new HTTPRequest(new Uri($"{BaseUrl}/play/conversation/"), HTTPMethods.Post, (
-                (originalRequest, response) =>
-                {
-                    if (!response.IsSuccess)
-                    {
-                        Debug.LogError("Error:" + originalRequest.Response.DataAsText);
-                        return;
-                    }
+            var request = UnityWebRequest.Get($"{BaseUrl}/play/conversation");
+            request.method = "POST"; // hack to send POST to server instead of PUT
+            request.SetRequestHeader("Authorization", $"Bearer {token}");
 
-                    var data = Encoding.UTF8.GetString(response.Data);
+            CharismaLogger.Log("Requesting conversation...");
 
-                    try
-                    {
-                        var deserialized = JsonConvert.DeserializeObject<CreateConversationResponse>(data);
-                        callback?.Invoke(deserialized.ConversationId);
-                        CharismaLogger.Log("Conversation request complete");
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogError($"Could not generate conversation; {e}");
-                        throw;
-                    }
+            yield return request.SendWebRequest();
 
-                }))
+            if (request.result != UnityWebRequest.Result.Success)
             {
-                RawData = Encoding.UTF8.GetBytes(token)
-            };
+                Debug.LogError("Error:" + request.error);
+                yield break;
+            }
 
-            request.SetHeader("Authorization", $"Bearer {token}");
-            request.Send();
+            var data = Encoding.UTF8.GetString(request.downloadHandler.data);
 
-            CharismaLogger.Log("Requesting conversation");
+            try
+            {
+                var deserialized = JsonConvert.DeserializeObject<CreateConversationResponse>(data);
+                callback?.Invoke(deserialized.ConversationUuid);
+                CharismaLogger.Log("Conversation request complete");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Could not generate conversation; {e}");
+                throw;
+            }
         }
 
         /// <summary>
@@ -145,30 +133,28 @@ namespace CharismaSDK
         /// <param name="recallValue">The recall value of the memory.</param>
         /// <param name="saveValue">The new value of the memory.</param>
         /// <param name="callback">Called when the mood has successfully been set.</param>
-        public static void SetMemory(string token, string recallValue, string saveValue, Action callback = null)
+        public static IEnumerator SetMemory(string token, string recallValue, string saveValue, Action callback = null)
         {
             var memory = new SetMemoryParams(recallValue, saveValue);
 
-            var request = new HTTPRequest(
-                new Uri($"{BaseUrl}/play/set-memory/"), HTTPMethods.Post, (
-                (originalRequest, response) =>
-                {
-                    if (!response.IsSuccess)
-                    {
-                        Debug.LogError("Error:" + originalRequest.Response.DataAsText);
-                        return;
-                    }
+            var request = UnityWebRequest.Get($"{BaseUrl}/play/set-memory");
+            request.method = "POST"; // hack to send POST to server instead of PUT
+            request.SetRequestHeader("Authorization", $"Bearer {token}");
 
-                    CharismaLogger.Log($"Set memory - '{memory.memoryRecallValue}' with value '{memory.saveValue}'");
-                    callback?.Invoke();
-                }))
+            CharismaLogger.Log("Setting memory...");
+
+            yield return request.SendWebRequest();
+
+            if (request.result != UnityWebRequest.Result.Success)
             {
-                RawData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(memory))
-            };
+                Debug.LogError("Error:" + request.error);
+                yield break;
+            }
 
-            request.SetHeader("Authorization", $"Bearer {token}");
-            request.AddHeader("Content-Type", "application/json");
-            request.Send();
+            var data = Encoding.UTF8.GetString(request.downloadHandler.data);
+
+            CharismaLogger.Log($"Set memory - '{memory.memoryRecallValue}' with value '{memory.saveValue}'");
+            callback?.Invoke();
         }
 
         #endregion
@@ -199,28 +185,34 @@ namespace CharismaSDK
     public class CreatePlaythroughTokenResponse
     {
         /// <summary>
-        /// Out generated token.
+        /// The created playthrough token. You can save this to resume play in the same playthrough.
         /// </summary>
         public string Token { get; }
 
+        /// <summary>
+        /// The UUID of the playthrough.
+        /// </summary>
+        public string PlaythroughUuid { get; }
+
         [JsonConstructor]
-        public CreatePlaythroughTokenResponse(string token)
+        public CreatePlaythroughTokenResponse(string token, string playthroughUuid)
         {
             Token = token;
+            PlaythroughUuid = playthroughUuid;
         }
     }
 
     public class CreateConversationResponse
     {
         /// <summary>
-        /// The id of the conversation we have just initialized.
+        /// The uuid of the conversation we have just initialized.
         /// </summary>
-        public int ConversationId { get; }
+        public string ConversationUuid { get; }
 
         [JsonConstructor]
-        public CreateConversationResponse(int conversationId)
+        public CreateConversationResponse(string conversationUuid)
         {
-            this.ConversationId = conversationId;
+            this.ConversationUuid = conversationUuid;
         }
     }
 
