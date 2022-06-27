@@ -17,7 +17,7 @@ public class ExampleScript : MonoBehaviour
     public int storyVersion;
     [Min(1)] public int startFromScene;
     public bool useSpeech;
-    public SpeechOptions speechOptions;
+    public SpeechOptions speechOptions = new SpeechOptions(SpeechOptions.AudioOutput.Buffer, SpeechOptions.Encoding.Ogg);
     [Header(header: "UI")]
     public Button button;
     public InputField input;
@@ -28,9 +28,6 @@ public class ExampleScript : MonoBehaviour
 
     private void Start()
     {
-        // Before we do anything, we need to set up Charisma. Put this in your initialisation code. You only need to do this one.
-        Playthrough.Setup();
-
         // The Charisma logger logs events to and from Charisma.
         CharismaLogger.IsActive = showLog;
 
@@ -53,7 +50,6 @@ public class ExampleScript : MonoBehaviour
                 _charisma.Connect(onReadyCallback: () =>
                 {
                     Debug.Log("Ready!");
-                    speechOptions = new SpeechOptions(SpeechOptions.AudioOutput.Buffer, SpeechOptions.Encoding.Ogg);
 
                     // In the start function, we pass the scene we want to start from, the conversationId we cached earlier, and the speech options from the inspector. 
                     _charisma.Start(sceneIndex: startFromScene, conversationUuid: _conversationUuid, speechOptions: speechOptions);
@@ -75,15 +71,15 @@ public class ExampleScript : MonoBehaviour
                         return;
                     }
 
-                    //if (useSpeech)
-                    //{
-                    //    // Once we have received a message character message, we might want to play the audio. To do this we run the GetClip method and wait for the callback which contains our audio clip, then pass it to the audio player.
-                    //    message.message.speech?.Audio.GetClip(options: speechOptions, onAudioGenerated: (clip =>
-                    //    {
-                    //        audioSource.clip = clip;
-                    //        audioSource.Play();
-                    //    }));
-                    //}
+                    if (useSpeech && message.message.speech.audio.Length > 0)
+                    {
+                        // Once we have received a message character message, we might want to play the audio. To do this we run the GetClip method and wait for the callback which contains our audio clip, then pass it to the audio player.
+                        Audio.GetAudioClip(speechOptions.encoding, message.message.speech.audio, onAudioGenerated: (clip =>
+                        {
+                            audioSource.clip = clip;
+                            audioSource.Play();
+                        }));
+                    }
 
                     text.text = ($"{message.message.character?.name}: {message.message?.text}");
 

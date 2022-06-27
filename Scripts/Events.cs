@@ -111,7 +111,7 @@ namespace CharismaSDK.Events
         /// <summary>
         /// Audio information from this response.
         /// </summary>
-        //public byte[] audio;
+        public byte[] audio;
 
         /// <summary>
         /// Duration of the audio from this response.

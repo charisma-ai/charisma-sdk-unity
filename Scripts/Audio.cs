@@ -2,12 +2,9 @@
 using System.Collections;
 using System.IO;
 using System.Linq;
-//using NAudio.Wave;
-using Newtonsoft.Json;
+// using NAudio.Wave;
 using UnityEngine;
-
-// Removes the WWW obsolete warning.
-#pragma warning disable 618
+using UnityEngine.Networking;
 
 namespace CharismaSDK
 {
@@ -15,7 +12,7 @@ namespace CharismaSDK
     {
         #region Static Methods
 
-        //public static AudioClip FromMp3Data(byte[] data)
+        //public static AudioClip Mp3BytesToAudioClip(byte[] data)
         //{
         //    // Load the data into a stream
         //    var mp3Stream = new MemoryStream(data);
@@ -48,146 +45,82 @@ namespace CharismaSDK
 
         #endregion
 
-        [JsonConstructor]
-        public Audio(byte[] data, string type, string url)
-        {
-            this.Data = data;
-            this.Type = type;
-            this.Url = url;
-        }
-
         /// <summary>
-        /// Returns the Url pointing to the audio file.
+        /// Generates an `AudioClip`.
         /// </summary>
-        /// <returns></returns>
-        public string GetClip()
-        {
-            if (string.IsNullOrEmpty(Url))
-                throw new NullReferenceException("There was no audio Url available. Check your audio settings.");
-
-            return Url;
-        }
-
-        /// <summary>
-        /// Generates an audioClip.
-        /// </summary>
-        /// <param name="options"> Provide the speech options used with Charisma</param>
+        /// <param name="encoding"> The encoding of the audio clip</param>
+        /// <param name="bytes"> The bytes of the audio clip</param>
         /// <param name="onAudioGenerated"> Callback containing the generated audio clip</param>
         /// <exception cref="NullReferenceException"></exception>
-        public void GetClip(SpeechOptions options, Action<AudioClip> onAudioGenerated)
+        public static void GetAudioClip(string encoding, byte[] bytes, Action<AudioClip> onAudioGenerated)
         {
-            if (!Data.Any() && onAudioGenerated != null)
-                throw new NullReferenceException("There was no Audio Data to generate from. Check your audio settings.");
+            if (!bytes.Any())
+                throw new NullReferenceException("There was no audio data to generate from. Check your audio settings.");
 
-            MainThreadConsumer.Instance.Consume(GenerateAudio(options, Data, onAudioGenerated));
+            MainThreadConsumer.Instance.Consume(GenerateAudio(encoding, bytes, onAudioGenerated));
         }
-        private IEnumerator GenerateAudio(SpeechOptions options, byte[] data, Action<AudioClip> action)
+
+        private static IEnumerator GenerateAudio(string encoding, byte[] bytes, Action<AudioClip> callback)
         {
-            switch (options.encoding)
+            AudioType selectedEncoding;
+            if (encoding == "mp3")
             {
-                //case "mp3":
-                //    {
-                //        var tempFile = Application.persistentDataPath + "/bytes.mp3";
-
-                //        if (Data != null)
-                //            File.WriteAllBytes(tempFile, Data);
-
-                //        var clip = new WWW("file://" + tempFile);
-                //        while (!clip.isDone)
-                //            yield return null;
-
-                //        // GenerateAudio the clip
-                //        Clip = FromMp3Data(clip.bytes);
-
-                //        action.Invoke(Clip);
-
-                //        CharismaLogger.Log("Generated audio");
-                //        break;
-                //    }
-                case "ogg":
-                    {
-                        var tempFile = Application.persistentDataPath + "/bytes.ogg";
-
-                        if (Data != null)
-                            File.WriteAllBytes(tempFile, Data);
-
-                        var clip = new WWW("file://" + tempFile);
-                        while (!clip.isDone)
-                            yield return null;
-
-                        // GenerateAudio the clip
-                        Clip = clip.GetAudioClip(false, false, AudioType.OGGVORBIS);
-
-                        action.Invoke(Clip);
-
-                        CharismaLogger.Log("Generated audio");
-                        break;
-                    }
-                default:
-                    throw new NotImplementedException();
+                selectedEncoding = AudioType.MPEG;
+            }
+            else if (encoding == "ogg")
+            {
+                selectedEncoding = AudioType.OGGVORBIS;
+            }
+            else if (encoding == "wav")
+            {
+                selectedEncoding = AudioType.WAV;
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
 
+            var tempFile = Application.persistentDataPath + "/bytes.ogg";
+
+            if (bytes != null)
+                File.WriteAllBytes(tempFile, bytes);
+
+            var request = UnityWebRequestMultimedia.GetAudioClip("file://" + tempFile, selectedEncoding);
+            yield return request.SendWebRequest();
+            while (!request.isDone)
+                yield return null;
+
+            AudioClip clip = DownloadHandlerAudioClip.GetContent(request);
+
+            callback.Invoke(clip);
         }
-
-        /// <summary>
-        /// Audio type.
-        /// </summary>
-        public string Type { get; }
-
-        /// <summary>
-        /// Raw bytes.
-        /// </summary>
-        public byte[] Data { get; }
-
-        /// <summary>
-        /// Generated audio clip.
-        /// </summary>
-        public AudioClip Clip { get; private set; }
-
-        /// <summary>
-        /// Url of this audio clip. Only available if Speech setting is set to Url.
-        /// </summary>
-        public string Url { get; }
-    }
-
-
-    public class Speech
-    {
-        /// <summary>
-        /// Audio information from this response.
-        /// </summary>
-        public Audio Audio;
-
-        /// <summary>
-        /// Duration of the audio from this response.
-        /// </summary>
-        public float duration;
     }
 
     [Serializable]
     public class SpeechOptions
     {
-        [Header("Wav only available on Windows")]
         [SerializeField] private AudioOutput _audioOutput;
         [SerializeField] private Encoding _encoding;
 
         public enum Encoding
         {
-            Wav,
-            Ogg
+            Mp3,
+            Ogg,
+            Wav
         }
 
         public enum AudioOutput
         {
-            Url,
+            // TODO: Add support for URL output
+            // Url,
             Buffer
         }
 
         /// <summary>
         /// Set the audio information coming back from Charisma.
         /// </summary>
-        /// <param name="output"></param>
-        /// <param name="encoding">Wav is only available on Windows.</param>
+        /// <param name="output">What output format to use</param>
+        /// <param name="encoding">What encoding to use</param>
         public SpeechOptions(AudioOutput output, Encoding encoding)
         {
             this._audioOutput = output;
@@ -200,10 +133,12 @@ namespace CharismaSDK
             {
                 switch (_encoding)
                 {
-                    case Encoding.Wav:
+                    case Encoding.Mp3:
                         return "mp3";
                     case Encoding.Ogg:
                         return "ogg";
+                    case Encoding.Wav:
+                        return "wav";
                     default:
                         Debug.LogError("Unknown audio format");
                         return null;
@@ -217,8 +152,8 @@ namespace CharismaSDK
             {
                 switch (_audioOutput)
                 {
-                    case AudioOutput.Url:
-                        return "url";
+                    //case AudioOutput.Url:
+                    //    return "url";
                     case AudioOutput.Buffer:
                         return "buffer";
                     default:
