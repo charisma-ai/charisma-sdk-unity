@@ -80,7 +80,6 @@ namespace CharismaSDK
 
         private ColyseusClient _client;
         private ColyseusRoom<object> _room;
-        private SpeechOptions _speechOptions;
 
         #endregion
 
@@ -90,10 +89,11 @@ namespace CharismaSDK
         /// Interaction with Charisma
         /// </summary>
         /// <param name="token">A valid play-though token.</param>
-        public Playthrough(string token, string playthroughUuid)
+        public Playthrough(string token, string playthroughUuid, SpeechOptions speechOptions = null)
         {
             Token = token;
             PlaythroughUuid = playthroughUuid;
+            SpeechOptions = speechOptions;
         }
 
         ~Playthrough()
@@ -209,13 +209,17 @@ namespace CharismaSDK
 
         #region Interaction
 
+        public void SetSpeechConfig(SpeechOptions speechOptions)
+        {
+            SpeechOptions = speechOptions;
+        }
+
         /// <summary>
         /// Start the story from selected scene.
         /// </summary>
-        /// <param name="sceneIndex">The scene to start from.</param>
-        /// <param name="speechOptions">Speech settings for the interaction.</param>
         /// <param name="conversationUuid">Id of the conversation we want to start.</param>
-        public void Start(string conversationUuid, int sceneIndex, SpeechOptions speechOptions = null)
+        /// <param name="sceneIndex">The scene to start from.</param>
+        public void Start(string conversationUuid, int sceneIndex)
         {
             if (!IsReadyToPlay)
             {
@@ -223,10 +227,7 @@ namespace CharismaSDK
                 return;
             };
 
-            // Initialise speech options
-            _speechOptions = speechOptions;
-
-            var startOptions = new StartOptions(conversationUuid, sceneIndex, speechOptions);
+            var startOptions = new StartOptions(conversationUuid, sceneIndex, SpeechOptions);
 
             CharismaLogger.Log("Sending `start` event to Charisma");
             _room?.Send("start", startOptions);
@@ -236,8 +237,7 @@ namespace CharismaSDK
         /// Start the story from selected scene.
         /// </summary>
         /// <param name="conversationUuid">Id of the conversation we want to resume.</param>
-        /// <param name="speechOptions">Speech settings for the interaction.</param>
-        public void Resume(string conversationUuid, SpeechOptions speechOptions = null)
+        public void Resume(string conversationUuid)
         {
             if (!IsReadyToPlay)
             {
@@ -245,10 +245,7 @@ namespace CharismaSDK
                 return;
             };
 
-            // Initialise speech options
-            _speechOptions = speechOptions;
-
-            var resumeOptions = new ResumeOptions(conversationUuid, _speechOptions);
+            var resumeOptions = new ResumeOptions(conversationUuid, SpeechOptions);
 
             CharismaLogger.Log("Sending `resume` event to Charisma");
             _room?.Send("resume", resumeOptions);
@@ -266,7 +263,7 @@ namespace CharismaSDK
                 return;
             };
 
-            var tapOptions = new Tap(conversationUuid, _speechOptions);
+            var tapOptions = new Tap(conversationUuid, SpeechOptions);
 
             CharismaLogger.Log("Sending `tap` event to Charisma");
             _room?.Send("tap", tapOptions);
@@ -286,7 +283,7 @@ namespace CharismaSDK
                 return;
             };
 
-            var playerMessage = new Reply(message, conversationUuid, _speechOptions);
+            var playerMessage = new Reply(message, conversationUuid, SpeechOptions);
 
             CharismaLogger.Log($"Sending `reply` event to Charisma:\nMessage: {message}\nConversation: {conversationUuid}");
             _room?.Send("reply", playerMessage);

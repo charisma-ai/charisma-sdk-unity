@@ -52,7 +52,7 @@ public class ExampleScript : MonoBehaviour
                     Debug.Log("Ready!");
 
                     // In the start function, we pass the scene we want to start from, the conversationId we cached earlier, and the speech options from the inspector. 
-                    _charisma.Start(sceneIndex: startFromScene, conversationUuid: _conversationUuid, speechOptions: speechOptions);
+                    _charisma.Start(sceneIndex: startFromScene, conversationUuid: _conversationUuid);
                 });
 
                 // We can now subscribe to message events from charisma.

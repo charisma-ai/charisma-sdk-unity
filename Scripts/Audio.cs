@@ -2,7 +2,6 @@
 using System.Collections;
 using System.IO;
 using System.Linq;
-// using NAudio.Wave;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -11,39 +10,6 @@ namespace CharismaSDK
     public class Audio
     {
         #region Static Methods
-
-        //public static AudioClip Mp3BytesToAudioClip(byte[] data)
-        //{
-        //    // Load the data into a stream
-        //    var mp3Stream = new MemoryStream(data);
-        //    // Convert the data in the stream to WAV format
-        //    var mp3Audio = new Mp3FileReader(mp3Stream);
-        //    var waveStream = WaveFormatConversionStream.CreatePcmStream(mp3Audio);
-        //    // Convert to WAV data
-        //    var wav = new Wav(AudioMemStream(waveStream).ToArray());
-
-        //    var audioClip = AudioClip.Create("CharismaSpeech", wav.SampleCount, 1, wav.Frequency, false);
-        //    audioClip.SetData(wav.LeftChannel, 0);
-        //    // Return the clip
-        //    return audioClip;
-        //}
-
-        //private static MemoryStream AudioMemStream(WaveStream waveStream)
-        //{
-        //    var outputStream = new MemoryStream();
-
-        //    using (var waveFileWriter = new WaveFileWriter(outputStream, waveStream.WaveFormat))
-        //    {
-        //        var bytes = new byte[waveStream.Length];
-        //        waveStream.Position = 0;
-        //        waveStream.Read(bytes, 0, Convert.ToInt32(waveStream.Length));
-        //        waveFileWriter.Write(bytes, 0, bytes.Length);
-        //        waveFileWriter.Flush();
-        //    }
-        //    return outputStream;
-        //}
-
-        #endregion
 
         /// <summary>
         /// Generates an `AudioClip` from a byte array.
@@ -56,7 +22,9 @@ namespace CharismaSDK
         public static void GetAudioClip(string encoding, byte[] bytes, Action<AudioClip> onAudioGenerated)
         {
             if (!bytes.Any())
+            {
                 throw new NullReferenceException("There was no audio data to generate from. Check your audio settings.");
+            }
 
             MainThreadConsumer.Instance.Consume(GenerateAudio(encoding, bytes, onAudioGenerated));
         }
@@ -125,6 +93,8 @@ namespace CharismaSDK
 
             callback.Invoke(clip);
         }
+
+        #endregion
     }
 
     [Serializable]
