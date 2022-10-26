@@ -47,31 +47,31 @@ namespace CharismaSDK
             if (tokenParams.StoryVersion == -1 && !string.IsNullOrEmpty(tokenParams.ApiKey))
             {
                 request.SetRequestHeader("Authorization", $"API-Key {tokenParams.ApiKey}");
-                CharismaLogger.Log("Using API key to generate playthrough");
+                Logger.Log("Using API key to generate playthrough");
             }
 
             // If the API key is null or nonexistent, throw error
             if (tokenParams.StoryVersion == -1 && string.IsNullOrEmpty(tokenParams.ApiKey))
             {
-                Debug.LogError("Please provide an API key in order to play the draft version");
+                Logger.LogError("Please provide an API key in order to play the draft version");
                 yield break;
             }
 
             if (tokenParams.StoryVersion == 0)
             {
-                CharismaLogger.Log("Generating playthrough token with latest published version");
+                Logger.Log("Generating playthrough token with latest published version");
             }
 
             if (tokenParams.StoryVersion != 0 && tokenParams.StoryVersion != -1)
             {
-                CharismaLogger.Log($"Generating playthrough token with version {tokenParams.StoryVersion} of the story");
+                Logger.Log($"Generating playthrough token with version {tokenParams.StoryVersion} of the story");
             }
 
             yield return request.SendWebRequest();
 
             if (request.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogError("Error:" + request.error);
+                Logger.LogError("Error:" + request.error);
                 yield break;
             }
 
@@ -81,11 +81,11 @@ namespace CharismaSDK
             {
                 var deserialized = JsonConvert.DeserializeObject<CreatePlaythroughTokenResponse>(data);
                 callback?.Invoke(deserialized);
-                CharismaLogger.Log("Token request complete");
+                Logger.Log("Token request complete");
             }
             catch (Exception e)
             {
-                Debug.LogError($"Could not deserialize token. Are you using the correct API key?: {e}");
+                Logger.LogError($"Could not deserialize token. Are you using the correct API key?: {e}");
                 throw;
             }
         }
@@ -101,13 +101,13 @@ namespace CharismaSDK
             request.method = "POST"; // hack to send POST to server instead of PUT
             request.SetRequestHeader("Authorization", $"Bearer {token}");
 
-            CharismaLogger.Log("Requesting conversation...");
+            Logger.Log("Requesting conversation...");
 
             yield return request.SendWebRequest();
 
             if (request.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogError("Error:" + request.error);
+                Logger.LogError("Error:" + request.error);
                 yield break;
             }
 
@@ -117,11 +117,11 @@ namespace CharismaSDK
             {
                 var deserialized = JsonConvert.DeserializeObject<CreateConversationResponse>(data);
                 callback?.Invoke(deserialized.ConversationUuid);
-                CharismaLogger.Log("Conversation request complete");
+                Logger.Log("Conversation request complete");
             }
             catch (Exception e)
             {
-                Debug.LogError($"Could not generate conversation; {e}");
+                Logger.LogError($"Could not generate conversation; {e}");
                 throw;
             }
         }
@@ -141,19 +141,19 @@ namespace CharismaSDK
             request.method = "POST"; // hack to send POST to server instead of PUT
             request.SetRequestHeader("Authorization", $"Bearer {token}");
 
-            CharismaLogger.Log("Setting memory...");
+            Logger.Log("Setting memory...");
 
             yield return request.SendWebRequest();
 
             if (request.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogError("Error:" + request.error);
+                Logger.LogError("Error:" + request.error);
                 yield break;
             }
 
             var data = Encoding.UTF8.GetString(request.downloadHandler.data);
 
-            CharismaLogger.Log($"Set memory - '{memory.memoryRecallValue}' with value '{memory.saveValue}'");
+            Logger.Log($"Set memory - '{memory.memoryRecallValue}' with value '{memory.saveValue}'");
             callback?.Invoke();
         }
 

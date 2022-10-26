@@ -130,33 +130,33 @@ namespace CharismaSDK
 
             room.OnJoin += () =>
             {
-                CharismaLogger.Log("Connected to socket");
+                Logger.Log("Connected to socket");
             };
 
             room.OnError += (code, message) =>
             {
-                Debug.LogError(code);
-                Debug.LogError(message);
+                Logger.LogError(code);
+                Logger.LogError(message);
             };
 
             room.OnMessage<string>("status", (status) =>
             {
                 if (status == "ready")
                 {
-                    CharismaLogger.Log("Ready to begin play");
+                    Logger.Log("Ready to begin play");
                     IsReadyToPlay = true;
 
                     onReadyCallback?.Invoke();
                 }
                 else
                 {
-                    Debug.LogError("Charisma: Failed to set up websocket connection to server");
+                    Logger.LogError("Failed to set up websocket connection to server");
                 }
             });
 
             room.OnMessage<Events.MessageEvent>("message", (message) =>
             {
-                CharismaLogger.Log("Event received: `message`");
+                Logger.Log("Event received: `message`");
                 OnMessage?.Invoke(message);
 
                 //MainThreadConsumer.Instance.Enqueue((async () =>
@@ -167,20 +167,20 @@ namespace CharismaSDK
 
             room.OnMessage<Events.StartTypingEvent>("start-typing", (message) =>
             {
-                CharismaLogger.Log("Event received: `start-typing`");
+                Logger.Log("Event received: `start-typing`");
                 OnStartTyping?.Invoke(message);
             });
 
             room.OnMessage<Events.StopTypingEvent>("stop-typing", (message) =>
             {
-                CharismaLogger.Log("Event received: `stop-typing`");
+                Logger.Log("Event received: `stop-typing`");
                 OnStopTyping?.Invoke(message);
             });
 
             room.OnMessage<Events.ProblemEvent>("problem", (message) =>
             {
-                CharismaLogger.Log("Event received: `problem`");
-                CharismaLogger.Log(message.error);
+                Logger.Log("Event received: `problem`");
+                Logger.Log(message.error);
             });
         }
 
@@ -198,11 +198,11 @@ namespace CharismaSDK
             }
             catch (Exception e)
             {
-                Debug.LogError($"Charisma: failed to disconnect: {e}");
+                Logger.LogError($"Failed to disconnect: {e}");
                 return;
             }
 
-            CharismaLogger.Log("Successfully disconnected");
+            Logger.Log("Successfully disconnected");
         }
 
         #endregion
@@ -223,13 +223,13 @@ namespace CharismaSDK
         {
             if (!IsReadyToPlay)
             {
-                Debug.LogError("Charisma: Socket not open. Connect before starting the interaction");
+                Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
             };
 
             var startOptions = new StartOptions(conversationUuid, sceneIndex, SpeechOptions);
 
-            CharismaLogger.Log("Sending `start` event to Charisma");
+            Logger.Log("Sending `start` event to Charisma");
             _room?.Send("start", startOptions);
         }
 
@@ -241,13 +241,13 @@ namespace CharismaSDK
         {
             if (!IsReadyToPlay)
             {
-                Debug.LogError("Charisma: Socket not open. Connect before resuming the interaction");
+                Logger.LogError("Socket not open. Connect before resuming the interaction");
                 return;
             };
 
             var resumeOptions = new ResumeOptions(conversationUuid, SpeechOptions);
 
-            CharismaLogger.Log("Sending `resume` event to Charisma");
+            Logger.Log("Sending `resume` event to Charisma");
             _room?.Send("resume", resumeOptions);
         }
 
@@ -259,13 +259,13 @@ namespace CharismaSDK
         {
             if (!IsReadyToPlay)
             {
-                Debug.LogError("Charisma: Socket not open. Connect before starting the interaction");
+                Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
             };
 
             var tapOptions = new Tap(conversationUuid, SpeechOptions);
 
-            CharismaLogger.Log("Sending `tap` event to Charisma");
+            Logger.Log("Sending `tap` event to Charisma");
             _room?.Send("tap", tapOptions);
         }
 
@@ -279,13 +279,13 @@ namespace CharismaSDK
         {
             if (!IsReadyToPlay)
             {
-                Debug.LogError("Charisma: Socket not open. Connect before starting the interaction");
+                Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
             };
 
             var playerMessage = new Reply(message, conversationUuid, SpeechOptions);
 
-            CharismaLogger.Log($"Sending `reply` event to Charisma:\nMessage: {message}\nConversation: {conversationUuid}");
+            Logger.Log($"Sending `reply` event to Charisma:\nMessage: {message}\nConversation: {conversationUuid}");
             _room?.Send("reply", playerMessage);
         }
 

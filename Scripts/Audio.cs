@@ -141,7 +141,7 @@ namespace CharismaSDK
                     case Encoding.Wav:
                         return "wav";
                     default:
-                        Debug.LogError("Unknown audio format");
+                        Logger.LogError("Unknown audio format");
                         return null;
                 }
             }
@@ -158,7 +158,7 @@ namespace CharismaSDK
                     case AudioOutput.Buffer:
                        return "buffer";
                     default:
-                        Debug.LogError("Unknown output method");
+                        Logger.LogError("Unknown output method");
                         return null;
                 }
             }

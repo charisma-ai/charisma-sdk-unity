@@ -10,14 +10,18 @@ using CharismaSDK.Events;
 public class ExampleScript : MonoBehaviour
 {
     [Header(header: "Charisma")]
-    public AudioSource audioSource;
-    public string apiKey;
-    public bool showLog;
+    public bool showLog = true;
+
     public int storyId;
     public int storyVersion;
+    public string apiKey;
     [Min(1)] public int startFromScene;
+
     public bool useSpeech;
     public SpeechOptions speechOptions = new SpeechOptions(SpeechOptions.AudioOutput.Buffer, SpeechOptions.Encoding.Ogg);
+
+    public AudioSource audioSource;
+
     [Header(header: "UI")]
     public Button button;
     public InputField input;
@@ -29,7 +33,7 @@ public class ExampleScript : MonoBehaviour
     private void Start()
     {
         // The Charisma logger logs events to and from Charisma.
-        CharismaLogger.IsActive = showLog;
+        CharismaSDK.Logger.logEnabled = showLog;
 
         // We create the config of our token, based on the settings we have defined in the inspector, here.
         var playthroughTokenParams = new CreatePlaythroughTokenParams(storyId: storyId, storyVersion: storyVersion, apiKey: apiKey);
@@ -62,7 +66,7 @@ public class ExampleScript : MonoBehaviour
                     // If the message is a panel-node, we should operate on this data without trying to generate audio or access the text & character data of the node since panel-nodes have neither.
                     if (message.messageType == MessageType.panel)
                     {
-                        CharismaLogger.Log("This is a panel node");
+                        Debug.Log("This is a panel node");
 
                         // We can't generate speech or access character & text data so we return after we have checked if this is the end of the story.
                         if (message.endStory)

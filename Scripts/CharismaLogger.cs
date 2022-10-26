@@ -2,19 +2,29 @@
 
 namespace CharismaSDK
 {
-    public static class CharismaLogger
+    public static class Logger
     {
-        public static bool IsActive { get; set; }
+        private static UnityEngine.Logger logger = new UnityEngine.Logger(Debug.unityLogger.logHandler);
 
-        public static void Log(string message)
+        public static bool logEnabled
         {
-            // TODO: Add filtering of messages
-            // TODO: Add message types
+            get { return logger.logEnabled; }
+            set { logger.logEnabled = value; }
+        }
 
-            if (IsActive)
-            {
-                Debug.Log("CharismaLogger: " + message);
-            }
+        public static void Log(object message)
+        {
+            logger.Log("Charisma", message);
+        }
+
+        public static void LogError(object message)
+        {
+            logger.LogError("Charisma", message);
+        }
+
+        public static void LogWarning(object message)
+        {
+            logger.LogWarning("Charisma", message);
         }
     }
 }
