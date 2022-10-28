@@ -48,7 +48,11 @@ public class ExampleScript : MonoBehaviour
                 this._conversationUuid = conversationUuid;
 
                 // We can now create a new charisma object and pass it our token.
-                this._charisma = new Playthrough(token: result.Token, playthroughUuid: result.PlaythroughUuid);
+                this._charisma = new Playthrough(
+                    token: result.Token,
+                    playthroughUuid: result.PlaythroughUuid,
+                    speechOptions
+                );
 
                 // We can now connect to Charisma. Once we receive the ready callback, we can start our play-through.
                 _charisma.Connect(onReadyCallback: () =>
@@ -56,7 +60,7 @@ public class ExampleScript : MonoBehaviour
                     Debug.Log("Ready!");
 
                     // In the start function, we pass the scene we want to start from, the conversationId we cached earlier, and the speech options from the inspector. 
-                    _charisma.Start(sceneIndex: startFromScene, conversationUuid: _conversationUuid);
+                    _charisma.Start(_conversationUuid, startFromScene);
                 });
 
                 // We can now subscribe to message events from charisma.
@@ -78,7 +82,7 @@ public class ExampleScript : MonoBehaviour
                     if (useSpeech && message.message.speech.audio.Length > 0)
                     {
                         // Once we have received a message character message, we might want to play the audio. To do this we run the GetClip method and wait for the callback which contains our audio clip, then pass it to the audio player.
-                        Audio.GetAudioClip(speechOptions.encoding, message.message.speech.audio, onAudioGenerated: (clip =>
+                        Audio.GetAudioClip(speechOptions.encoding.ToString(), message.message.speech.audio, onAudioGenerated: (clip =>
                         {
                             audioSource.clip = clip;
                             audioSource.Play();
@@ -109,7 +113,7 @@ public class ExampleScript : MonoBehaviour
         if (string.IsNullOrEmpty(value: input.text)) return;
 
         // Send the text of our input field to Charisma.
-        _charisma.Reply(conversationUuid: _conversationUuid, message: input.text);
+        _charisma.Reply(conversationUuid: _conversationUuid, text: input.text);
 
         input.text = string.Empty;
     }

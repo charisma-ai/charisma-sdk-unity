@@ -1,7 +1,6 @@
 using System;
 using Newtonsoft.Json;
 using UnityEngine;
-//using Object = UnityEngine.Object;
 using Colyseus;
 using System.Collections.Generic;
 
@@ -130,17 +129,17 @@ namespace CharismaSDK
 
             room.OnJoin += () =>
             {
-                Logger.Log("Connected to socket");
+                Logger.Log("Successfully connected to playthrough");
             };
 
             room.OnError += (code, message) =>
             {
-                Logger.LogError(code);
-                Logger.LogError(message);
+                Logger.LogError($"There was an error connecting to the playthrough. Code: {code}. Message: {message}");
             };
 
             room.OnMessage<string>("status", (status) =>
             {
+                Logger.Log($"Received `status` event: {JsonConvert.SerializeObject(status)}");
                 if (status == "ready")
                 {
                     Logger.Log("Ready to begin play");
@@ -148,39 +147,29 @@ namespace CharismaSDK
 
                     onReadyCallback?.Invoke();
                 }
-                else
-                {
-                    Logger.LogError("Failed to set up websocket connection to server");
-                }
             });
 
             room.OnMessage<Events.MessageEvent>("message", (message) =>
             {
-                Logger.Log("Event received: `message`");
+                Logger.Log($"Received `message` event: {JsonConvert.SerializeObject(message)}");
                 OnMessage?.Invoke(message);
-
-                //MainThreadConsumer.Instance.Enqueue((async () =>
-                //{
-                //    OnMessage?.Invoke(deserialized.ConversationId, deserialized);
-                //}));
             });
 
             room.OnMessage<Events.StartTypingEvent>("start-typing", (message) =>
             {
-                Logger.Log("Event received: `start-typing`");
+                Logger.Log($"Received `start-typing` event: {JsonConvert.SerializeObject(message)}");
                 OnStartTyping?.Invoke(message);
             });
 
             room.OnMessage<Events.StopTypingEvent>("stop-typing", (message) =>
             {
-                Logger.Log("Event received: `stop-typing`");
+                Logger.Log($"Received `stop-typing` event: {JsonConvert.SerializeObject(message)}");
                 OnStopTyping?.Invoke(message);
             });
 
             room.OnMessage<Events.ProblemEvent>("problem", (message) =>
             {
-                Logger.Log("Event received: `problem`");
-                Logger.Log(message.error);
+                Logger.LogWarning($"Received `problem` event: {JsonConvert.SerializeObject(message)}");
             });
         }
 
@@ -215,11 +204,14 @@ namespace CharismaSDK
         }
 
         /// <summary>
-        /// Start the story from selected scene.
+        /// Starts the story. Can be from a particular scene or subplot, or the beginning of the story, depending on the value of the `startOptions` parameter.
         /// </summary>
-        /// <param name="conversationUuid">Id of the conversation we want to start.</param>
-        /// <param name="sceneIndex">The scene to start from.</param>
-        public void Start(string conversationUuid, int sceneIndex)
+        /// <param name="startOptions">Options to send with the `start` event.</param>
+        public void Start(
+            string conversationUuid,
+            int? sceneIndex = null,
+            string startGraphReferenceId = null
+        )
         {
             if (!IsReadyToPlay)
             {
@@ -227,10 +219,10 @@ namespace CharismaSDK
                 return;
             };
 
-            var startOptions = new StartOptions(conversationUuid, sceneIndex, SpeechOptions);
+            var startEvent = new Events.StartEvent(conversationUuid, sceneIndex, startGraphReferenceId, SpeechOptions);
 
-            Logger.Log("Sending `start` event to Charisma");
-            _room?.Send("start", startOptions);
+            Logger.Log($"Sending `start` event: {JsonConvert.SerializeObject(startEvent)}");
+            _room?.Send("start", startEvent);
         }
 
         /// <summary>
@@ -245,10 +237,10 @@ namespace CharismaSDK
                 return;
             };
 
-            var resumeOptions = new ResumeOptions(conversationUuid, SpeechOptions);
+            var resumeEvent = new Events.ResumeEvent(conversationUuid, SpeechOptions);
 
-            Logger.Log("Sending `resume` event to Charisma");
-            _room?.Send("resume", resumeOptions);
+            Logger.Log($"Sending `resume` event: {JsonConvert.SerializeObject(resumeEvent)}");
+            _room?.Send("resume", resumeEvent);
         }
 
         /// <summary>
@@ -263,19 +255,19 @@ namespace CharismaSDK
                 return;
             };
 
-            var tapOptions = new Tap(conversationUuid, SpeechOptions);
+            var tapEvent = new Events.TapEvent(conversationUuid, SpeechOptions);
 
-            Logger.Log("Sending `tap` event to Charisma");
-            _room?.Send("tap", tapOptions);
+            Logger.Log($"Sending `tap` event: {JsonConvert.SerializeObject(tapEvent)}");
+            _room?.Send("tap", tapEvent);
         }
 
 
         /// <summary>
         /// Send player response to Charisma.
         /// </summary>
-        /// <param name="message">Message to send.</param>
+        /// <param name="text">Message to send.</param>
         /// <param name="conversationUuid">Conversation to interact with.</param>
-        public void Reply(string conversationUuid, string message)
+        public void Reply(string conversationUuid, string text)
         {
             if (!IsReadyToPlay)
             {
@@ -283,93 +275,12 @@ namespace CharismaSDK
                 return;
             };
 
-            var playerMessage = new Reply(message, conversationUuid, SpeechOptions);
+            var replyEvent = new Events.ReplyEvent(conversationUuid, text, SpeechOptions);
 
-            Logger.Log($"Sending `reply` event to Charisma:\nMessage: {message}\nConversation: {conversationUuid}");
-            _room?.Send("reply", playerMessage);
+            Logger.Log($"Sending `reply` event: {JsonConvert.SerializeObject(replyEvent)}");
+            _room?.Send("reply", replyEvent);
         }
 
         #endregion
-    }
-
-    public class Reply
-    {
-        public string conversationUuid;
-        public string text;
-        public SpeechOptions speechConfig;
-
-        /// <summary>
-        /// Player response to Charisma.
-        /// </summary>
-        /// <param name="text">Message to send</param>
-        /// <param name="speechConfig">Changes the speech settings of the interaction.
-        ///  - Don't pass unless you want to change settings.'</param>
-        /// <param name="conversationUuid">Id of the conversation to send the reply to.</param>
-        public Reply(string text, string conversationUuid, SpeechOptions speechConfig = null)
-        {
-            this.text = text;
-            this.speechConfig = speechConfig;
-            this.conversationUuid = conversationUuid;
-        }
-    }
-
-    public class Tap
-    {
-        public string conversationUuid;
-        public SpeechOptions speechConfig;
-
-        public Tap(string conversationUuid, SpeechOptions speechConfig = null)
-        {
-            this.conversationUuid = conversationUuid;
-            this.speechConfig = speechConfig;
-        }
-    }
-
-    public class StartOptions
-    {
-        /// <summary>
-        /// Options with which to start the interaction with Charisma.
-        /// </summary>
-        /// <param name="conversationUuid">Id of the conversation to start.</param>
-        /// <param name="sceneIndex">Index of the scene to start.</param>
-        /// <param name="speechConfig">To use speech, pass speech options.</param>
-        public StartOptions(string conversationUuid, int sceneIndex, SpeechOptions speechConfig = null)
-        {
-            this.conversationUuid = conversationUuid;
-            this.sceneIndex = sceneIndex;
-            this.speechConfig = speechConfig;
-        }
-
-        public string conversationUuid { get; set; }
-        public int sceneIndex { get; }
-        public SpeechOptions speechConfig { get; }
-    }
-
-    public class ResumeOptions
-    {
-        /// <summary>
-        /// Options with which to resume a playthrough in Charisma.
-        /// </summary>
-        /// <param name="conversationUuid">Id of the conversation to resume.</param>
-        /// <param name="speechConfig">To use speech, pass speech options.</param>
-        public ResumeOptions(string conversationUuid, SpeechOptions speechConfig = null)
-        {
-            this.conversationUuid = conversationUuid;
-            this.speechConfig = speechConfig;
-        }
-
-        public string conversationUuid { get; set; }
-        public SpeechOptions speechConfig { get; }
-    }
-
-    public class CharismaError
-    {
-        public string Error { get; }
-
-        [JsonConstructor]
-        public CharismaError(string error)
-        {
-            Error = error;
-        }
     }
 }
