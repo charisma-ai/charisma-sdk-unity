@@ -39,7 +39,7 @@ namespace CharismaSDK
                 ? new { storyId = tokenParams.StoryId, version = tokenParams.StoryVersion }
                 : new { storyId = tokenParams.StoryId };
 
-            var request = UnityWebRequest.Put($"{BaseUrl}/play/token/", SerializeBody(requestParams));
+            var request = UnityWebRequest.Put($"{BaseUrl}/play/token", SerializeBody(requestParams));
             request.method = "POST"; // hack to send POST to server instead of PUT
             request.SetRequestHeader("Content-Type", "application/json");
 
@@ -135,25 +135,34 @@ namespace CharismaSDK
         /// <param name="callback">Called when the mood has successfully been set.</param>
         public static IEnumerator SetMemory(string token, string recallValue, string saveValue, Action callback = null)
         {
-            var memory = new SetMemoryParams(recallValue, saveValue);
+            var memoryToSet = new {
+                recallValue = recallValue,
+                saveValue = saveValue,
+            };
+            // This can be multiple memories, but for now this SDK supports setting only one at a time.
+            object[] memoriesToSet = { memoryToSet };
+            object requestParams = new {
+                memories = memoriesToSet,
+            };
 
-            var request = UnityWebRequest.Get($"{BaseUrl}/play/set-memory");
+            var request = UnityWebRequest.Put($"{BaseUrl}/play/set-memory", SerializeBody(requestParams));
             request.method = "POST"; // hack to send POST to server instead of PUT
             request.SetRequestHeader("Authorization", $"Bearer {token}");
+            request.SetRequestHeader("Content-Type", "application/json");
 
-            Logger.Log("Setting memory...");
+            Logger.Log($"Setting memory `{memoryToSet.recallValue}` with value `{memoryToSet.saveValue}`...");
 
             yield return request.SendWebRequest();
 
             if (request.result != UnityWebRequest.Result.Success)
             {
                 Logger.LogError("Error:" + request.error);
+
                 yield break;
             }
 
-            var data = Encoding.UTF8.GetString(request.downloadHandler.data);
+            Logger.Log($"Successfully set memory!");
 
-            Logger.Log($"Set memory - '{memory.memoryRecallValue}' with value '{memory.saveValue}'");
             callback?.Invoke();
         }
 
@@ -215,18 +224,4 @@ namespace CharismaSDK
             this.ConversationUuid = conversationUuid;
         }
     }
-
-    public class SetMemoryParams
-    {
-        public string memoryRecallValue;
-        public string saveValue;
-
-        public SetMemoryParams(string recallValue, string saveValue)
-        {
-            this.memoryRecallValue = recallValue;
-            this.saveValue = saveValue;
-        }
-    }
 }
-
-

@@ -39,18 +39,18 @@ public class ExampleScript : MonoBehaviour
         var playthroughTokenParams = new CreatePlaythroughTokenParams(storyId: storyId, storyVersion: storyVersion, apiKey: apiKey);
 
         // We use these settings to create a play-through token.
-        StartCoroutine(CharismaAPI.CreatePlaythroughToken(tokenParams: playthroughTokenParams, callback: (result) =>
+        StartCoroutine(CharismaAPI.CreatePlaythroughToken(tokenParams: playthroughTokenParams, callback: (tokenResponse) =>
         {
             // Once we receive the callback with our token, we can create a new conversation.
-            StartCoroutine(CharismaAPI.CreateConversation(token: result.Token, callback: conversationUuid =>
+            StartCoroutine(CharismaAPI.CreateConversation(token: tokenResponse.Token, callback: conversationUuid =>
             {
                 // We'll cache our conversation Id since we need this to send replies and other events to Charisma.
                 this._conversationUuid = conversationUuid;
 
                 // We can now create a new charisma object and pass it our token.
                 this._charisma = new Playthrough(
-                    token: result.Token,
-                    playthroughUuid: result.PlaythroughUuid,
+                    token: tokenResponse.Token,
+                    playthroughUuid: tokenResponse.PlaythroughUuid,
                     speechOptions
                 );
 
