@@ -49,3 +49,6 @@ sysinfo.txt
 
 # Other
 .vscode
+
+# Overrides for a typical global .gitignore (.gitignore_global) entry, *~
+!Samples~

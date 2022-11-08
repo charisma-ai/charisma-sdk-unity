@@ -1,0 +1,16 @@
+{
+    "name": "ai.charisma.sdk.runtime",
+    "rootNamespace": "",
+    "references": [
+        "GUID:cbd398b7a0281441c9a6800be1ca9717"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

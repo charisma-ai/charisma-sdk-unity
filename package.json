@@ -1,0 +1,33 @@
+{
+	"name": "ai.charisma.sdk",
+	"version": "0.0.1",
+	"displayName": "Charisma.ai SDK",
+	"description": "Charisma.ai SDK for Unity",
+	"unity": "2021.3",
+	"license": "MIT",
+	"category": "Networking",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/charisma-ai/charisma-sdk-unity.git"
+	},
+	"author": {
+		"name": "Charisma Entertainment Ltd",
+		"email": "hello@charisma.ai",
+		"url": "https://charisma.ai/"
+	},
+	"keywords": [
+		"charisma",
+		"npc",
+		"ai",
+		"chatbot",
+		"conversation"
+	],
+	"dependencies": {},
+	"samples": [
+		{
+			"displayName": "Example",
+			"description": "Charisma Example",
+			"path": "Samples~"
+		}
+	]
+}
