@@ -117,7 +117,13 @@ namespace CharismaSDK
             Dictionary<string, object> roomOptions = new Dictionary<string, object>
             {
                 ["token"] = Token,
-                ["playthroughId"] = PlaythroughUuid
+                ["playthroughId"] = PlaythroughUuid,
+                ["sdkInfo"] = new Dictionary<string, object>
+                    {
+                        ["sdkId"] = "unity",
+                        ["sdkVersion"] = "0.1.0",
+                        ["protocolVersion"] = 1
+                    }
             };
 
             ColyseusRoom<dynamic> room = await client.JoinOrCreate(

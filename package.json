@@ -1,6 +1,6 @@
 {
 	"name": "ai.charisma.sdk",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"displayName": "Charisma.ai SDK",
 	"description": "Charisma.ai SDK for Unity",
 	"unity": "2021.3",
