@@ -148,7 +148,7 @@ namespace CharismaSDK.Events
         /// <summary>
         /// Recall value of this memory
         /// </summary>
-        public string memoryRecallValue;
+        public string recallValue;
 
         /// <summary>
         /// Save value of this memory

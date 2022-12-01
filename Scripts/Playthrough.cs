@@ -287,6 +287,25 @@ namespace CharismaSDK
             _room?.Send("reply", replyEvent);
         }
 
+        /// <summary>
+        /// Send player action to Charisma.
+        /// </summary>
+        /// <param name="action">The action to send.</param>
+        /// <param name="conversationUuid">Conversation to interact with.</param>
+        public void Action(string conversationUuid, string action)
+        {
+            if (!IsReadyToPlay)
+            {
+                Logger.LogError("Socket not open. Connect before starting the interaction");
+                return;
+            };
+
+            var actionEvent = new Events.ActionEvent(conversationUuid, action, SpeechOptions);
+
+            Logger.Log($"Sending `action` event: {JsonConvert.SerializeObject(actionEvent)}");
+            _room?.Send("action", actionEvent);
+        }
+
         #endregion
     }
 }
