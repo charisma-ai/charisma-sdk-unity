@@ -306,6 +306,30 @@ namespace CharismaSDK
             _room?.Send("action", actionEvent);
         }
 
+        public void Pause()
+        {
+            if (!IsReadyToPlay)
+            {
+                Logger.LogError("Socket not open. Connect before starting the interaction");
+                return;
+            };
+
+            Logger.Log("Sending `pause` event");
+            _room?.Send("pause");
+        }
+
+        public void Play()
+        {
+            if (!IsReadyToPlay)
+            {
+                Logger.LogError("Socket not open. Connect before starting the interaction");
+                return;
+            };
+
+            Logger.Log("Sending `play` event");
+            _room?.Send("play");
+        }
+
         #endregion
     }
 }
