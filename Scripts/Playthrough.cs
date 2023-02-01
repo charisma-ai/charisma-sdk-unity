@@ -357,15 +357,12 @@ namespace CharismaSDK
                 return;
             };
 
-            microphone = gameObject.AddComponent<Microphone>();
-            microphone.micCallbackDelegate += (byte[] data) => {
-                _room?.Send("speech-recognition-chunk", data);
-            };
+            if (microphone == null)
+                microphone = gameObject.TryGetComponent(out Microphone mic) ? mic : gameObject.AddComponent<Microphone>();
 
-            var speechRecognitionOptions = new Dictionary<string, object>
-            {
-                ["service"] = "aws"
-            };
+            microphone.micCallbackDelegate += data => _room?.Send("speech-recognition-chunk", data);
+
+            var speechRecognitionOptions = new Dictionary<string, object> { ["service"] = "aws" };
             _room?.Send("speech-recognition-start", speechRecognitionOptions);
             microphone.StartListening();
         }
