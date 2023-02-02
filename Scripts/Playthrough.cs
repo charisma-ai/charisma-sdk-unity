@@ -360,6 +360,7 @@ namespace CharismaSDK
             if (microphone == null)
                 microphone = gameObject.TryGetComponent(out Microphone mic) ? mic : gameObject.AddComponent<Microphone>();
 
+            microphone.Initialize(SpeechOptions.microphoneId);
             microphone.micCallbackDelegate += data => _room?.Send("speech-recognition-chunk", data);
 
             var speechRecognitionOptions = new Dictionary<string, object> { ["service"] = "aws" };

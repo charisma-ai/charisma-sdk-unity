@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
@@ -102,6 +102,10 @@ namespace CharismaSDK
     {
         [SerializeField] private AudioOutput _audioOutput;
         [SerializeField] private Encoding _encoding;
+        /// <summary>
+        /// Id of the receiving microphone can be different on different devices.
+        /// </summary>
+        [SerializeField] private int _microphoneId;
 
         public enum Encoding
         {
@@ -122,10 +126,12 @@ namespace CharismaSDK
         /// </summary>
         /// <param name="output">What output format to use</param>
         /// <param name="encoding">What encoding to use</param>
-        public SpeechOptions(AudioOutput output, Encoding encoding)
+        /// <param name="microphoneId">Id of the receiving microphone</param>
+        public SpeechOptions(AudioOutput output, Encoding encoding, int microphoneId)
         {
             this._audioOutput = output;
             this._encoding = encoding;
+            this._microphoneId = microphoneId;
         }
 
         public string encoding
@@ -163,7 +169,7 @@ namespace CharismaSDK
                 }
             }
         }
+
+        public int microphoneId => _microphoneId;
     }
-
-
 }
