@@ -127,7 +127,7 @@ namespace CharismaSDK
         /// <param name="output">What output format to use</param>
         /// <param name="encoding">What encoding to use</param>
         /// <param name="microphoneId">Id of the receiving microphone</param>
-        public SpeechOptions(AudioOutput output, Encoding encoding, int microphoneId)
+        public SpeechOptions(AudioOutput output, Encoding encoding, int microphoneId = 0)
         {
             this._audioOutput = output;
             this._encoding = encoding;
