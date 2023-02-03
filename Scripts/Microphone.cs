@@ -10,12 +10,19 @@ namespace CharismaSDK {
 
         private const double NormalizedFloatTo16BitConversionFactor = 0x7FFF + 0.4999999999999999;
 
+        int _microphoneId;
+
         void FixedUpdate()
         {
             if (clip != null)
             {
                 ReadMicrophoneAudio();
             }
+        }
+
+        internal void Initialize(int microphoneId)
+        {
+            _microphoneId = microphoneId;
         }
 
         void ReadMicrophoneAudio()
@@ -70,7 +77,7 @@ namespace CharismaSDK {
                 return;
             }
 
-            MicString = UnityEngine.Microphone.devices[0];
+            MicString = UnityEngine.Microphone.devices[_microphoneId];
             clip = UnityEngine.Microphone.Start(MicString, true, 10, 16000);
         }
 
