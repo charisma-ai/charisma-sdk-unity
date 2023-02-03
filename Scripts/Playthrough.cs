@@ -349,7 +349,7 @@ namespace CharismaSDK
 
         private Microphone microphone;
 
-        public void StartSpeechRecognition(GameObject gameObject)
+        public void StartSpeechRecognition(GameObject gameObject, int microphoneId = 0)
         {
             if (!IsReadyToPlay)
             {
@@ -360,7 +360,7 @@ namespace CharismaSDK
             if (microphone == null)
                 microphone = gameObject.TryGetComponent(out Microphone mic) ? mic : gameObject.AddComponent<Microphone>();
 
-            microphone.Initialize(SpeechOptions.microphoneId);
+            microphone.Initialize(microphoneId);
             microphone.micCallbackDelegate += data => _room?.Send("speech-recognition-chunk", data);
 
             var speechRecognitionOptions = new Dictionary<string, object> { ["service"] = "aws" };
