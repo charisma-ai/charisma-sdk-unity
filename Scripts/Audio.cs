@@ -65,7 +65,7 @@ namespace CharismaSDK
         {
             AudioType audioType = GetAudioType(encoding);
 
-            var tempFile = Application.persistentDataPath + "/bytes.ogg";
+            var tempFile = Application.persistentDataPath + "/" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + "." + encoding;
 
             if (bytes != null)
                 File.WriteAllBytes(tempFile, bytes);
