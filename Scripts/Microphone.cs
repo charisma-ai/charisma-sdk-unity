@@ -77,6 +77,7 @@ namespace CharismaSDK {
                 return;
             }
 
+            readHead = 0;
             MicString = UnityEngine.Microphone.devices[_microphoneId];
             clip = UnityEngine.Microphone.Start(MicString, true, 10, 16000);
         }
