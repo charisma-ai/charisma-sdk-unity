@@ -371,6 +371,7 @@ namespace CharismaSDK
         public void StopSpeechRecognition()
         {
             _room?.Send("speech-recognition-stop");
+            microphone.micCallbackDelegate -= data => _room?.Send("speech-recognition-chunk", data);
             microphone.StopListening();
         }
 
