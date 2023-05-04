@@ -11,6 +11,15 @@ namespace CharismaSDK
     /// </summary>
     public class Playthrough
     {
+        #region Enums
+        public enum PlaythroughConnectionState
+        {
+            NotConnected,
+            Connecting,
+            Connected
+        }
+        #endregion
+
         #region Static Variables
 
         private const string BaseUrl = "wss://play.charisma.ai";
@@ -35,11 +44,6 @@ namespace CharismaSDK
         public string PlaythroughUuid { get; }
 
         /// <summary>
-        /// A successful connection to the socket has been made. Charisma is ready to start play.
-        /// </summary>
-        public bool IsReadyToPlay { get; set; }
-
-        /// <summary>
         /// Assign a new Speech config.
         ///  - To add speech, pass in a new speech config.
         ///  - To remove audio, set this to null.
@@ -53,6 +57,7 @@ namespace CharismaSDK
         public delegate void MessageDelegate(Events.MessageEvent message);
         public delegate void StartTypingDelegate(Events.StartTypingEvent message);
         public delegate void StopTypingDelegate(Events.StopTypingEvent message);
+        public delegate void ConnectionStateChangeDelegate(PlaythroughConnectionState message);
 
         #endregion
 
@@ -73,12 +78,20 @@ namespace CharismaSDK
         /// </summary>
         public event StopTypingDelegate OnStopTyping;
 
+        /// <summary>
+        /// Called when the connection state of the playthrough to Charisma changes.
+        /// </summary>
+        public event ConnectionStateChangeDelegate OnConnectionStateChange;
+
         #endregion
 
         #region MemberVariables
 
         private ColyseusClient _client;
         private ColyseusRoom<object> _room;
+
+        
+        private PlaythroughConnectionState _connectionState;
 
         #endregion
 
@@ -93,6 +106,7 @@ namespace CharismaSDK
             Token = token;
             PlaythroughUuid = playthroughUuid;
             SpeechOptions = speechOptions;
+            SetConnectionState(PlaythroughConnectionState.NotConnected);
         }
 
         ~Playthrough()
@@ -110,7 +124,12 @@ namespace CharismaSDK
         /// <param name="onReadyCallback">Called when successfully connected to Charisma.</param>
         public async void Connect(Action onReadyCallback)
         {
-            if (IsConnected) return;
+            if (IsConnected)
+            {
+                return;
+            }
+
+            SetConnectionState(PlaythroughConnectionState.Connecting);
 
             ColyseusClient client = new ColyseusClient(BaseUrl);
 
@@ -149,7 +168,7 @@ namespace CharismaSDK
                 if (status == "ready")
                 {
                     Logger.Log("Ready to begin play");
-                    IsReadyToPlay = true;
+                    SetConnectionState(PlaythroughConnectionState.Connected);
 
                     onReadyCallback?.Invoke();
                 }
@@ -182,14 +201,17 @@ namespace CharismaSDK
         // Disconnect from the current interaction.
         public void Disconnect()
         {
-            if (!IsConnected) return;
+            if (!IsConnected)
+            {
+                return;
+            }
 
             try
             {
                 _room.Leave();
                 _room = null;
 
-                IsReadyToPlay = false;
+                SetConnectionState(PlaythroughConnectionState.NotConnected);
             }
             catch (Exception e)
             {
@@ -219,7 +241,7 @@ namespace CharismaSDK
             string startGraphReferenceId = null
         )
         {
-            if (!IsReadyToPlay)
+            if (!IsReadyToPlay())
             {
                 Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
@@ -237,7 +259,7 @@ namespace CharismaSDK
         /// <param name="conversationUuid">Id of the conversation we want to resume.</param>
         public void Resume(string conversationUuid)
         {
-            if (!IsReadyToPlay)
+            if (!IsReadyToPlay())
             {
                 Logger.LogError("Socket not open. Connect before resuming the interaction");
                 return;
@@ -255,7 +277,7 @@ namespace CharismaSDK
         /// <param name="conversationUuid">Id of the conversation the tap should be sent to.</param>
         public void Tap(string conversationUuid)
         {
-            if (!IsReadyToPlay)
+            if (!IsReadyToPlay())
             {
                 Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
@@ -275,7 +297,7 @@ namespace CharismaSDK
         /// <param name="conversationUuid">Conversation to interact with.</param>
         public void Reply(string conversationUuid, string text)
         {
-            if (!IsReadyToPlay)
+            if (!IsReadyToPlay())
             {
                 Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
@@ -294,7 +316,7 @@ namespace CharismaSDK
         /// <param name="conversationUuid">Conversation to interact with.</param>
         public void Action(string conversationUuid, string action)
         {
-            if (!IsReadyToPlay)
+            if (!IsReadyToPlay())
             {
                 Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
@@ -308,7 +330,7 @@ namespace CharismaSDK
 
         public void Pause()
         {
-            if (!IsReadyToPlay)
+            if (!IsReadyToPlay())
             {
                 Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
@@ -320,7 +342,7 @@ namespace CharismaSDK
 
         public void Play()
         {
-            if (!IsReadyToPlay)
+            if (!IsReadyToPlay())
             {
                 Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
@@ -330,6 +352,24 @@ namespace CharismaSDK
             _room?.Send("play");
         }
 
+        #endregion
+
+        #region Private functions
+
+        private bool IsReadyToPlay()
+        {
+            return _connectionState == PlaythroughConnectionState.Connected;
+        }
+
+        private void SetConnectionState(PlaythroughConnectionState connectionState)
+        {
+            if(_connectionState != connectionState)
+            {
+                Logger.Log($"Setting connection state to {connectionState}.");
+                _connectionState = connectionState;
+                OnConnectionStateChange?.Invoke(connectionState);
+            }
+        }
         #endregion
     }
 }

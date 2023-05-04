@@ -1,71 +1,26 @@
-using CharismaSDK;
+using static CharismaSDK.Playthrough;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ConnectionStateDisplay : MonoBehaviour
 {
-    private enum ConnectionStateResult
-    {
-        Inactive,
-        NotConnected,
-        ConnectedNotReady,
-        ConnectedReady
-    }
-
-    private Playthrough _charisma;
-
     [SerializeField]
     private Text _currentConnectionState;
 
-    public void AssignCharismaPlaythrough(Playthrough playthrough)
-    {
-        _charisma = playthrough;
-    }
-
-    private void Update()
-    {
-        if(_charisma != default)
-        {
-            if (_charisma.IsConnected)
-            {
-                if (_charisma.IsReadyToPlay)
-                {
-                    SetResultState(ConnectionStateResult.ConnectedReady);
-                }
-                else
-                {
-                    SetResultState(ConnectionStateResult.ConnectedNotReady);
-                }
-            }
-            else
-            {
-                SetResultState(ConnectionStateResult.NotConnected);
-            }
-        }
-        else
-        {
-            SetResultState(ConnectionStateResult.Inactive);
-        }
-    }
-
-    private void SetResultState(ConnectionStateResult result)
+    public void SetResultState(PlaythroughConnectionState result)
     {
         switch (result)
         {
-            case ConnectionStateResult.Inactive:
-                SetDisplayText("Inactive");
+            case PlaythroughConnectionState.NotConnected:
+                SetDisplayText("Disconnected");
                 SetDisplayColor(Color.white);
                 break;
-            case ConnectionStateResult.NotConnected:
+            case PlaythroughConnectionState.Connecting:
                 SetDisplayText("Connecting...");
-                SetDisplayColor(Color.white);
-                break;
-            case ConnectionStateResult.ConnectedNotReady:
-                SetDisplayText("Connected - Not Ready");
                 SetDisplayColor(Color.yellow);
                 break;
-            case ConnectionStateResult.ConnectedReady:
-                SetDisplayText("Ready");
+            case PlaythroughConnectionState.Connected:
+                SetDisplayText("Connected");
                 SetDisplayColor(Color.green);
                 break;
         }
