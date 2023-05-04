@@ -57,7 +57,10 @@ public class ExampleScript : MonoBehaviour
                     speechOptions
                 );
 
-                _connectionStateDisplay?.AssignCharismaPlaythrough(_charisma);
+                if (_connectionStateDisplay != default)
+                {
+                    _charisma.OnConnectionStateChange += _connectionStateDisplay.SetResultState;
+                }
 
                 // We can now connect to Charisma. Once we receive the ready callback, we can start our play-through.
                 _charisma.Connect(onReadyCallback: () =>
