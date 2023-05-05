@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
+using CharismaSDK.Events;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -24,6 +26,26 @@ namespace CharismaSDK
         {
             string json = JsonConvert.SerializeObject(value);
             return Encoding.UTF8.GetBytes(json);
+        }
+
+        /// <summary>
+        /// used for creating query strings for appending onto HTTP Get functions
+        /// </summary>
+        /// <param name="dictionary"></param>
+        /// <returns>created query string</returns>
+        private static string CreateQueryString(Dictionary<string, string> dictionary)
+        {
+            string result = "?";
+
+            foreach(var entry in dictionary)
+            {
+                result += entry.Key;
+                result += "=";
+                result += entry.Value;
+                result += "&";
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -88,6 +110,10 @@ namespace CharismaSDK
                 Logger.LogError($"Could not deserialize token. Are you using the correct API key?: {e}");
                 throw;
             }
+
+            // Need to dispose of WebRequest to prevent following error:
+            // "A Native Collection has not been disposed, resulting in a memory leak. Enable Full StackTraces to get more details."
+            request.Dispose();
         }
 
         /// <summary>
@@ -124,6 +150,156 @@ namespace CharismaSDK
                 Logger.LogError($"Could not generate conversation; {e}");
                 throw;
             }
+
+            // Need to dispose of WebRequest to prevent following error:
+            // "A Native Collection has not been disposed, resulting in a memory leak. Enable Full StackTraces to get more details."
+            request.Dispose();
+        }
+
+        /// <summary>
+        /// Retrives the message history of an active conversation.
+        /// </summary>
+        /// <param name="token">Valid play-through token.</param>
+        /// <param name="conversationUuid">Active generated Conversation ID.</param>
+        /// <param name="minEventId"></param>
+        /// <param name="callback">Called when a valid history is generated.</param>
+        public static IEnumerator GetMessageHistory(string token, string conversationUuid, string minEventId, Action<GetMessageHistoryResponse> callback)
+        {
+            Dictionary<string, string> requestParams = new Dictionary<string, string>();
+            if(conversationUuid != default)
+            {
+                requestParams.Add("conversationUuid", conversationUuid);
+            }
+            if (minEventId != default)
+            {
+                requestParams.Add("minEventId", minEventId);
+            }
+
+            var request = UnityWebRequest.Get($"{BaseUrl}/play/message-history" + CreateQueryString(requestParams));
+            request.method = "GET"; 
+            request.SetRequestHeader("Authorization", $"Bearer {token}");
+
+            Logger.Log("Requesting message history...");
+
+            yield return request.SendWebRequest();
+
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Logger.LogError("Error:" + request.error);
+                yield break;
+            }
+
+            var data = Encoding.UTF8.GetString(request.downloadHandler.data);
+
+            try
+            {
+                var deserialized = JsonConvert.DeserializeObject<GetMessageHistoryResponse>(data);
+                callback?.Invoke(deserialized);
+                Logger.Log("Conversation request complete");
+            }
+            catch (Exception e)
+            {
+                Logger.LogError($"Could not generate conversation; {e}");
+                throw;
+            }
+
+            // Need to dispose of WebRequest to prevent following error:
+            // "A Native Collection has not been disposed, resulting in a memory leak. Enable Full StackTraces to get more details."
+            request.Dispose();
+        }
+
+        /// <summary>
+        /// Returns the playthrough info of a requested conversation.
+        /// </summary>
+        /// <param name="token">Valid play-through token.</param>
+        /// <param name="callback">Called when a valid playthrough info response is generated.</param>
+        public static IEnumerator GetPlaythroughInfo(string token, Action<GetPlaythroughInfoResponse> callback)
+        {
+            var request = UnityWebRequest.Get($"{BaseUrl}/play/playthrough-info");
+            request.method = "GET";
+            request.SetRequestHeader("Authorization", $"Bearer {token}");
+
+            Logger.Log("Requesting playthrough info...");
+
+            yield return request.SendWebRequest();
+
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Logger.LogError("Error:" + request.error);
+                yield break;
+            }
+
+            var data = Encoding.UTF8.GetString(request.downloadHandler.data);
+
+            try
+            {
+                var deserialized = JsonConvert.DeserializeObject<GetPlaythroughInfoResponse>(data);
+                callback?.Invoke(deserialized);
+                Logger.Log("Conversation request complete");
+            }
+            catch (Exception e)
+            {
+                Logger.LogError($"Could not generate conversation; {e}");
+                throw;
+            }
+
+            // Need to dispose of WebRequest to prevent following error:
+            // "A Native Collection has not been disposed, resulting in a memory leak. Enable Full StackTraces to get more details."
+            request.Dispose();
+        }
+
+        /// <summary>
+        /// Sets a memory to a specific value in a playthrough.
+        /// </summary>
+        /// <param name="token">Provide the token of the play-through where the memory should be changed.</param>
+        /// <param name="recallSaveValues">A collection of recall and save values. The key of the Dict acts as the recall value and value acts as the save.</param>
+        /// <param name="callback">Called when the mood has successfully been set.</param>
+        public static IEnumerator SetMemory(string token, Dictionary<string, string> recallSaveValues, Action callback = null)
+        {
+            var count = recallSaveValues.Count;
+
+            Logger.Log($"Setting memories - count: {count}");
+
+            object[] memoriesToSet = new object[count];
+            int i = 0;
+            foreach (var entry in recallSaveValues)
+            {
+                var memoryToSet = new
+                {
+                    recallValue = entry.Key,
+                    saveValue = entry.Value,
+                };
+                Logger.Log($"Setting memory `{memoryToSet.recallValue}` with value `{memoryToSet.saveValue}`...");
+                memoriesToSet[i] = memoryToSet;
+                i++;
+            }
+
+            object requestParams = new
+            {
+                memories = memoriesToSet,
+            };
+
+            var request = UnityWebRequest.Put($"{BaseUrl}/play/set-memory", SerializeBody(requestParams));
+            request.method = "POST"; // hack to send POST to server instead of PUT
+            request.SetRequestHeader("Authorization", $"Bearer {token}");
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            yield return request.SendWebRequest();
+
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Logger.LogError("Error:" + request.error);
+
+                yield break;
+            }
+
+            Logger.Log($"Successfully set memories!");
+
+            callback?.Invoke();
+
+            // Need to dispose of WebRequest to prevent following error:
+            // "A Native Collection has not been disposed, resulting in a memory leak. Enable Full StackTraces to get more details."
+            request.Dispose();
         }
 
         /// <summary>
@@ -135,35 +311,52 @@ namespace CharismaSDK
         /// <param name="callback">Called when the mood has successfully been set.</param>
         public static IEnumerator SetMemory(string token, string recallValue, string saveValue, Action callback = null)
         {
-            var memoryToSet = new {
-                recallValue = recallValue,
-                saveValue = saveValue,
-            };
-            // This can be multiple memories, but for now this SDK supports setting only one at a time.
-            object[] memoriesToSet = { memoryToSet };
-            object requestParams = new {
-                memories = memoriesToSet,
-            };
+            yield return SetMemory(token,
+                new Dictionary<string, string>()
+                 {
+                    { recallValue, saveValue }
+                }, callback);
+        }
 
-            var request = UnityWebRequest.Put($"{BaseUrl}/play/set-memory", SerializeBody(requestParams));
+        /// <summary>
+        /// Forks the current playthrough from the current version into the latest published version.
+        /// </summary>
+        /// <param name="oldToken">Provide the token of the play-through which should be forked.</param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public static IEnumerator ForkPlaythroughToken(string oldToken, Action<ForkConversationResponse> callback)
+        {
+            var request = UnityWebRequest.Get($"{BaseUrl}/play/fork-playthrough");
             request.method = "POST"; // hack to send POST to server instead of PUT
-            request.SetRequestHeader("Authorization", $"Bearer {token}");
-            request.SetRequestHeader("Content-Type", "application/json");
+            request.SetRequestHeader("Authorization", $"Bearer {oldToken}");
 
-            Logger.Log($"Setting memory `{memoryToSet.recallValue}` with value `{memoryToSet.saveValue}`...");
+            Logger.Log("Requesting playthrough fork...");
 
             yield return request.SendWebRequest();
 
             if (request.result != UnityWebRequest.Result.Success)
             {
                 Logger.LogError("Error:" + request.error);
-
                 yield break;
             }
 
-            Logger.Log($"Successfully set memory!");
+            var data = Encoding.UTF8.GetString(request.downloadHandler.data);
 
-            callback?.Invoke();
+            try
+            {
+                var deserialized = JsonConvert.DeserializeObject<ForkConversationResponse>(data);
+                callback?.Invoke(deserialized);
+                Logger.Log("Conversation request complete");
+            }
+            catch (Exception e)
+            {
+                Logger.LogError($"Could not generate conversation; {e}");
+                throw;
+            }
+
+            // Need to dispose of WebRequest to prevent following error:
+            // "A Native Collection has not been disposed, resulting in a memory leak. Enable Full StackTraces to get more details."
+            request.Dispose();
         }
 
         #endregion
@@ -222,6 +415,52 @@ namespace CharismaSDK
         public CreateConversationResponse(string conversationUuid)
         {
             this.ConversationUuid = conversationUuid;
+        }
+    }
+
+    public class GetMessageHistoryResponse
+    {
+        public MessageEvent[] Messages { get; }
+
+        [JsonConstructor]
+        public GetMessageHistoryResponse(MessageEvent[] messages) 
+        {
+            Messages = messages;
+        }
+    }
+
+    public class ForkConversationResponse
+    {
+        /// <summary>
+        /// The new forked playthrough token.
+        /// </summary>
+        public string NewToken { get; }
+
+        /// <summary>
+        /// The UUID of the playthrough.
+        /// </summary>
+        public string PlaythroughUuid { get; }
+
+        [JsonConstructor]
+        public ForkConversationResponse(string token, string playthroughUuid)
+        {
+            NewToken = token;
+            PlaythroughUuid = playthroughUuid;
+        }
+    }
+
+    public class GetPlaythroughInfoResponse
+    {
+        public Emotion[] Emotions { get; }
+        public Memory[] Memories { get; }
+        public Impact[] Impacts { get; }
+
+        [JsonConstructor]
+        public GetPlaythroughInfoResponse(Emotion[] emotions, Memory[] memories, Impact[] impacts)
+        {
+            Emotions = emotions;
+            Memories = memories;
+            Impacts = impacts;
         }
     }
 }

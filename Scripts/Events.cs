@@ -170,6 +170,16 @@ namespace CharismaSDK.Events
 
     [Preserve]
     [Serializable]
+    public class Impact
+    {
+        public int id;
+        public string impact;
+        public bool isImpactShareable;
+        public string impactImageUrl;
+    }
+
+    [Preserve]
+    [Serializable]
     public class ActiveEffect
     {
         public int id;
