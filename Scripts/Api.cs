@@ -161,7 +161,7 @@ namespace CharismaSDK
         /// </summary>
         /// <param name="token">Valid play-through token.</param>
         /// <param name="conversationUuid">Active generated Conversation ID.</param>
-        /// <param name="minEventId"></param>
+        /// <param name="minEventId">Minimum event Id from which to start reading message history. Only assign if you want messages after a certain point</param>
         /// <param name="callback">Called when a valid history is generated.</param>
         public static IEnumerator GetMessageHistory(string token, string conversationUuid, string minEventId, Action<GetMessageHistoryResponse> callback)
         {
