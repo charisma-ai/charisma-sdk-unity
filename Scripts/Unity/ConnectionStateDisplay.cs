@@ -7,19 +7,19 @@ public class ConnectionStateDisplay : MonoBehaviour
     [SerializeField]
     private Text _currentConnectionState;
 
-    public void SetResultState(PlaythroughConnectionState result)
+    public void SetResultState(ConnectionState result)
     {
         switch (result)
         {
-            case PlaythroughConnectionState.NotConnected:
+            case ConnectionState.Disconnected:
                 SetDisplayText("Disconnected");
                 SetDisplayColor(Color.white);
                 break;
-            case PlaythroughConnectionState.Connecting:
+            case ConnectionState.Connecting:
                 SetDisplayText("Connecting...");
                 SetDisplayColor(Color.yellow);
                 break;
-            case PlaythroughConnectionState.Connected:
+            case ConnectionState.Connected:
                 SetDisplayText("Connected");
                 SetDisplayColor(Color.green);
                 break;

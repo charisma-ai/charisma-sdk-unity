@@ -12,9 +12,9 @@ namespace CharismaSDK
     public class Playthrough
     {
         #region Enums
-        public enum PlaythroughConnectionState
+        public enum ConnectionState
         {
-            NotConnected,
+            Disconnected,
             Connecting,
             Connected
         }
@@ -27,11 +27,6 @@ namespace CharismaSDK
         #endregion
 
         #region Properties
-
-        /// <summary>
-        /// Returns true if the socket is open.
-        /// </summary>
-        public bool IsConnected => _room != null && _room.colyseusConnection.IsOpen;
 
         /// <summary>
         /// The last token that was generated.
@@ -57,7 +52,7 @@ namespace CharismaSDK
         public delegate void MessageDelegate(Events.MessageEvent message);
         public delegate void StartTypingDelegate(Events.StartTypingEvent message);
         public delegate void StopTypingDelegate(Events.StopTypingEvent message);
-        public delegate void ConnectionStateChangeDelegate(PlaythroughConnectionState message);
+        public delegate void ConnectionStateChangeDelegate(ConnectionState connectionState);
 
         #endregion
 
@@ -91,7 +86,7 @@ namespace CharismaSDK
         private ColyseusRoom<object> _room;
 
         
-        private PlaythroughConnectionState _connectionState;
+        private ConnectionState _connectionState;
 
         #endregion
 
@@ -106,7 +101,7 @@ namespace CharismaSDK
             Token = token;
             PlaythroughUuid = playthroughUuid;
             SpeechOptions = speechOptions;
-            SetConnectionState(PlaythroughConnectionState.NotConnected);
+            SetConnectionState(ConnectionState.Disconnected);
         }
 
         ~Playthrough()
@@ -124,12 +119,13 @@ namespace CharismaSDK
         /// <param name="onReadyCallback">Called when successfully connected to Charisma.</param>
         public async void Connect(Action onReadyCallback)
         {
-            if (IsConnected)
+            if (IsConnected())
             {
+                Logger.Log("Playthrough is already connected. Exiting early.");
                 return;
             }
 
-            SetConnectionState(PlaythroughConnectionState.Connecting);
+            SetConnectionState(ConnectionState.Connecting);
 
             ColyseusClient client = new ColyseusClient(BaseUrl);
 
@@ -168,7 +164,7 @@ namespace CharismaSDK
                 if (status == "ready")
                 {
                     Logger.Log("Ready to begin play");
-                    SetConnectionState(PlaythroughConnectionState.Connected);
+                    SetConnectionState(ConnectionState.Connected);
 
                     onReadyCallback?.Invoke();
                 }
@@ -201,8 +197,9 @@ namespace CharismaSDK
         // Disconnect from the current interaction.
         public void Disconnect()
         {
-            if (!IsConnected)
+            if (!IsConnected())
             {
+                Logger.Log("Playthrough is already disconnected. Exiting early.");
                 return;
             }
 
@@ -211,7 +208,7 @@ namespace CharismaSDK
                 _room.Leave();
                 _room = null;
 
-                SetConnectionState(PlaythroughConnectionState.NotConnected);
+                SetConnectionState(ConnectionState.Disconnected);
             }
             catch (Exception e)
             {
@@ -358,10 +355,10 @@ namespace CharismaSDK
 
         private bool IsReadyToPlay()
         {
-            return _connectionState == PlaythroughConnectionState.Connected;
+            return _connectionState == ConnectionState.Connected;
         }
 
-        private void SetConnectionState(PlaythroughConnectionState connectionState)
+        private void SetConnectionState(ConnectionState connectionState)
         {
             if(_connectionState != connectionState)
             {
@@ -370,6 +367,12 @@ namespace CharismaSDK
                 OnConnectionStateChange?.Invoke(connectionState);
             }
         }
+
+        private bool IsConnected()
+        {
+            return _connectionState == ConnectionState.Connected;
+        }
+
         #endregion
     }
 }
