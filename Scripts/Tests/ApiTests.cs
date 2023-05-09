@@ -16,6 +16,9 @@ namespace CharismaSDK.Tests
         private const int TEST_CASE_VERSIONID = -1;
         private const string TEST_CASE_APIKEY = "cff59833-71fc-42c4-9077-220d42aef65a";
 
+        private const string CONVERSATION_REPLY_START = "Hi";
+        private const string CONVERSATION_REPLY_CONTINUED = "Test query";
+
         private const string EXPECTED_REPLY_FROM_ACTOR = "Howdy!";
 
         private const string DRAFT_MEMORY_RECALL_VALUE = "delicious";
@@ -27,13 +30,14 @@ namespace CharismaSDK.Tests
         private string _tokenId;
         private Playthrough _charisma;
 
-        private CreatePlaythroughTokenParams _playthroughTokenParams;
-
-        [OneTimeSetUp]
-        public void Setup()
+        // used via ValueSource Attribute to load as test parameters
+        // TODO: populate this on [OneTimeSetUp] from external file, so users can easily add new test parameters
+        private static CreatePlaythroughTokenParams[] _validParameters = new CreatePlaythroughTokenParams[]
         {
-            _playthroughTokenParams = new CreatePlaythroughTokenParams(TEST_CASE_TOKENID, TEST_CASE_VERSIONID, TEST_CASE_APIKEY);
-        }
+            // separating these parameters results in tests for all permutations which some may be invalid
+            // pre-defining the entire token parameter set prevents this
+            new CreatePlaythroughTokenParams(TEST_CASE_TOKENID, TEST_CASE_VERSIONID, TEST_CASE_APIKEY),
+        };
 
         [SetUp]
         public void RepeatSetup()
@@ -52,12 +56,14 @@ namespace CharismaSDK.Tests
 
         [Category("API")]
         [UnityTest]
-        public IEnumerator LoadPlaythrough()
+        public IEnumerator LoadPlaythrough([ValueSource("_validParameters")] CreatePlaythroughTokenParams parameterSet)
         {
+            
+
             string resultUuid = null;
             string resultToken = null;
 
-            var task = CharismaAPI.CreatePlaythroughToken(_playthroughTokenParams, callback: (response) =>
+            var task = CharismaAPI.CreatePlaythroughToken(parameterSet, callback: (response) =>
             {
                 // assign token and uuid post callback
                 resultUuid = response.PlaythroughUuid;
@@ -73,14 +79,16 @@ namespace CharismaSDK.Tests
 
         [Category("API")]
         [UnityTest]
-        public IEnumerator GetMessageHistory()
+        public IEnumerator GetMessageHistory([ValueSource("_validParameters")] CreatePlaythroughTokenParams parameterSet)
         {
+            
+
             GetMessageHistoryResponse messageHistory = default;
 
             IEnumerator playthroughCreationCallback = default;
             IEnumerator getMessageHistory = default;
 
-            IEnumerator createToken = CharismaAPI.CreatePlaythroughToken(_playthroughTokenParams, callback: (tokenResponse) =>
+            IEnumerator createToken = CharismaAPI.CreatePlaythroughToken(parameterSet, callback: (tokenResponse) =>
             {
                 playthroughCreationCallback = CharismaAPI.CreateConversation(token: tokenResponse.Token, callback: conversationUuid =>
                 {
@@ -117,7 +125,7 @@ namespace CharismaSDK.Tests
             });
 
             // send conversation reply
-            _charisma.Reply(_conversationUuid, "Hi");
+            _charisma.Reply(_conversationUuid, CONVERSATION_REPLY_START);
 
             // need to wait for reply to be handled and message received callback to be received
             yield return WaitUntil(() =>
@@ -138,13 +146,15 @@ namespace CharismaSDK.Tests
 
         [Category("API")]
         [UnityTest]
-        public IEnumerator GetPlaythroughInfo()
+        public IEnumerator GetPlaythroughInfo([ValueSource("_validParameters")] CreatePlaythroughTokenParams parameterSet)
         {
+            
+
             GetPlaythroughInfoResponse playthroughInfo = default;
 
             IEnumerator getPlaythroughInfoCall = default;
 
-            IEnumerator createToken = CharismaAPI.CreatePlaythroughToken(_playthroughTokenParams, callback: (tokenResponse) =>
+            IEnumerator createToken = CharismaAPI.CreatePlaythroughToken(parameterSet, callback: (tokenResponse) =>
             {
                 getPlaythroughInfoCall = CharismaAPI.GetPlaythroughInfo(tokenResponse.Token, callback: (playthroughInfoResult) =>
                 {
@@ -166,8 +176,10 @@ namespace CharismaSDK.Tests
 
         [Category("API")]
         [UnityTest]
-        public IEnumerator SetMemorySingle()
+        public IEnumerator SetMemorySingle([ValueSource("_validParameters")] CreatePlaythroughTokenParams parameterSet)
         {
+            
+
             IEnumerator setMemory = default;
             IEnumerator getPlaythroughInfoPostCall = default;
 
@@ -176,7 +188,7 @@ namespace CharismaSDK.Tests
 
             bool memoryChangePerformedSuccesfully = false;
 
-            IEnumerator createToken = CharismaAPI.CreatePlaythroughToken(_playthroughTokenParams, callback: (tokenResponse) =>
+            IEnumerator createToken = CharismaAPI.CreatePlaythroughToken(parameterSet, callback: (tokenResponse) =>
             {
                 setMemory = CharismaAPI.SetMemory(tokenResponse.Token, memoryRecallValue, memorySaveValue, callback: () =>
                 {
@@ -220,8 +232,10 @@ namespace CharismaSDK.Tests
 
         [Category("API")]
         [UnityTest]
-        public IEnumerator ForkPlaythroughToken()
+        public IEnumerator ForkPlaythroughToken([ValueSource("_validParameters")] CreatePlaythroughTokenParams parameterSet)
         {
+            
+
             IEnumerator forkPlaythrough = default;
             IEnumerator playthroughCreationCallback = default;
             IEnumerator getDraftPlaythroughInfoCall = default;
@@ -230,7 +244,7 @@ namespace CharismaSDK.Tests
             GetPlaythroughInfoResponse draftPlaythroughInfo = default;
             GetPlaythroughInfoResponse forkedPlaythroughInfo = default;
 
-            IEnumerator createPlaythroughToken = CharismaAPI.CreatePlaythroughToken(_playthroughTokenParams, callback: (tokenResponse) =>
+            IEnumerator createPlaythroughToken = CharismaAPI.CreatePlaythroughToken(parameterSet, callback: (tokenResponse) =>
             {
                 playthroughCreationCallback = CharismaAPI.CreateConversation(token: tokenResponse.Token, callback: conversationUuid =>
                 {
@@ -289,6 +303,129 @@ namespace CharismaSDK.Tests
             // to identify succesful fork, draft version feature a single Actor
             // while forked version features two
             Assert.AreNotEqual(draftPlaythroughInfo.Emotions.Length, forkedPlaythroughInfo.Emotions.Length, message: "Draft and Forked playthrough have the same count, which is not expected.");
+        }
+
+        [Category("API")]
+        [UnityTest]
+        public IEnumerator ResetPlaythrough([ValueSource("_validParameters")] CreatePlaythroughTokenParams parameterSet)
+        {
+            
+
+            GetMessageHistoryResponse messageHistory = default;
+            GetMessageHistoryResponse postResetMessageHistory = default;
+
+            IEnumerator playthroughCreationCallback = default;
+            IEnumerator getMessageHistoryPreReset = default;
+            IEnumerator resetPlaythrough = default;
+            IEnumerator getMessageHistoryPostReset = default;
+
+            bool triggeredOnMessageCallback = false;
+            long firstMessageId = 0;
+
+            IEnumerator createToken = CharismaAPI.CreatePlaythroughToken(parameterSet, callback: (tokenResponse) =>
+            {
+                playthroughCreationCallback = CharismaAPI.CreateConversation(token: tokenResponse.Token, callback: conversationUuid =>
+                {
+                    _conversationUuid = conversationUuid;
+
+                    _charisma = new Playthrough(
+                        tokenResponse.Token,
+                        tokenResponse.PlaythroughUuid
+                    );
+
+                    // hook up on message callback before attempting to connect
+                    _charisma.OnMessage += (message) =>
+                    {
+                        triggeredOnMessageCallback = true;
+
+                        // expecting 2nd reply, before calling any of the getter messages
+                        if (message.message.text != "Test reply")
+                        {
+                            firstMessageId = message.eventId;
+                            return;
+                        }
+
+                        getMessageHistoryPreReset = CharismaAPI.GetMessageHistory(tokenResponse.Token, _conversationUuid, null, callback: (messageHistoryResponse) =>
+                        {
+                            messageHistory = messageHistoryResponse;
+                        }
+                        );
+
+                        resetPlaythrough = CharismaAPI.ResetPlaythrough(tokenResponse.Token, firstMessageId, () =>
+                        {
+                            getMessageHistoryPostReset = CharismaAPI.GetMessageHistory(tokenResponse.Token, _conversationUuid, null, callback: (response) =>
+                            {
+                                postResetMessageHistory = response;
+                            }
+                        );
+                        });
+                    };
+
+                    _charisma.Connect(onReadyCallback: () =>
+                    {
+                        _charisma.Start(_conversationUuid);
+                    });
+                });
+            });
+
+            yield return createToken;
+
+            // adding padding to accomodate for server response waiting time
+            yield return StartAndWaitUntil(playthroughCreationCallback, () =>
+            {
+                return _charisma.IsReadyToPlay;
+            });
+
+            // send conversation reply
+            _charisma.Reply(_conversationUuid, CONVERSATION_REPLY_START);
+
+            yield return WaitUntil(() =>
+            {
+                return triggeredOnMessageCallback;
+            });
+
+            // send 2nd reply
+            _charisma.Reply(_conversationUuid, CONVERSATION_REPLY_CONTINUED);
+
+            // need to wait for reply to be handled and message received callback to be received
+            yield return WaitUntil(() =>
+            {
+                return getMessageHistoryPreReset != default;
+            });
+
+            // adding padding to accomodate for message history callback
+            yield return StartAndWaitUntil(getMessageHistoryPreReset, () =>
+            {
+                return messageHistory != default;
+            });
+
+            // all playthrough reset once we have message history
+            yield return StartAndWaitUntil(resetPlaythrough, () =>
+            {
+                return getMessageHistoryPostReset != default;
+            });
+
+            // clear message callback flag, since after a reset we want to wait for the message callback to happen again
+            triggeredOnMessageCallback = false;
+            _charisma.Start(_conversationUuid);
+            _charisma.Reply(_conversationUuid, CONVERSATION_REPLY_START);
+
+            yield return WaitUntil(() =>
+            {
+                return triggeredOnMessageCallback;
+            });
+
+            // request post reset message history to confirm the state of the playthrough
+            yield return StartAndWaitUntil(getMessageHistoryPostReset, () =>
+            {
+                return postResetMessageHistory != default;
+            });
+
+            Assert.IsTrue(messageHistory != default, "Pre-reset Message History was never returned");
+            Assert.IsTrue(postResetMessageHistory != default, "Post-reset Message History was never returned");
+            Assert.IsNotEmpty(messageHistory.Messages, null, "Pre-reset Message history is empty.");
+            Assert.IsNotEmpty(postResetMessageHistory.Messages, null, "Post-reset Message history is empty.");
+            Assert.AreNotEqual(messageHistory.Messages.Length, postResetMessageHistory.Messages.Length, "Message counts match post reset, which is incorrect.");
         }
 
         #endregion

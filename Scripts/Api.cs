@@ -37,6 +37,8 @@ namespace CharismaSDK
         {
             string result = "?";
 
+            // TODO: will need to add handling for illegal HTTP characters found in the key and value bodies
+            // to prevent sending bad requests to the server
             foreach(var entry in dictionary)
             {
                 result += entry.Key;
@@ -195,11 +197,11 @@ namespace CharismaSDK
             {
                 var deserialized = JsonConvert.DeserializeObject<GetMessageHistoryResponse>(data);
                 callback?.Invoke(deserialized);
-                Logger.Log("Conversation request complete");
+                Logger.Log("Message history request complete");
             }
             catch (Exception e)
             {
-                Logger.LogError($"Could not generate conversation; {e}");
+                Logger.LogError($"Could not get message history; {e}");
                 throw;
             }
 
@@ -209,7 +211,7 @@ namespace CharismaSDK
         }
 
         /// <summary>
-        /// Returns the playthrough info of a requested conversation.
+        /// Returns information about the playthrough, including emotions of the characters and saved memories.
         /// </summary>
         /// <param name="token">Valid play-through token.</param>
         /// <param name="callback">Called when a valid playthrough info response is generated.</param>
@@ -235,11 +237,11 @@ namespace CharismaSDK
             {
                 var deserialized = JsonConvert.DeserializeObject<GetPlaythroughInfoResponse>(data);
                 callback?.Invoke(deserialized);
-                Logger.Log("Conversation request complete");
+                Logger.Log("Playthrough info request complete");
             }
             catch (Exception e)
             {
-                Logger.LogError($"Could not generate conversation; {e}");
+                Logger.LogError($"Could not generate playthrough information; {e}");
                 throw;
             }
 
@@ -322,9 +324,8 @@ namespace CharismaSDK
         /// Forks the current playthrough from the current version into the latest published version.
         /// </summary>
         /// <param name="oldToken">Provide the token of the play-through which should be forked.</param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        public static IEnumerator ForkPlaythroughToken(string oldToken, Action<ForkConversationResponse> callback)
+        /// <param name="callback">Called when the fork has successfully been set.</param>
+        public static IEnumerator ForkPlaythroughToken(string oldToken, Action<ForkPlaythroughResponse> callback)
         {
             var request = UnityWebRequest.Get($"{BaseUrl}/play/fork-playthrough");
             request.method = "POST"; // hack to send POST to server instead of PUT
@@ -344,15 +345,62 @@ namespace CharismaSDK
 
             try
             {
-                var deserialized = JsonConvert.DeserializeObject<ForkConversationResponse>(data);
+                var deserialized = JsonConvert.DeserializeObject<ForkPlaythroughResponse>(data);
                 callback?.Invoke(deserialized);
-                Logger.Log("Conversation request complete");
+                Logger.Log("Fork request complete");
             }
             catch (Exception e)
             {
-                Logger.LogError($"Could not generate conversation; {e}");
+                Logger.LogError($"Could not request playthrough fork; {e}");
                 throw;
             }
+
+            // Need to dispose of WebRequest to prevent following error:
+            // "A Native Collection has not been disposed, resulting in a memory leak. Enable Full StackTraces to get more details."
+            request.Dispose();
+        }
+
+        /// <summary>
+        /// Resets the current playthrough instance, by pointing it to a previously registered eventId
+        /// </summary>
+        /// <param name="token">Provide the token of the play-through which should be reset.</param>
+        /// <param name="eventId">Event Id of the message to which the playthrough should be reset to. Can be obtained from the OnMessage callback, or GetMessageHistory</param>
+        /// <param name="callback">Called when the reset has been successful.</param>
+        public static IEnumerator ResetPlaythrough(string token, long eventId, Action callback)
+        {
+            object requestParams = new
+            {
+                eventId = eventId.ToString(),
+            };
+
+            var request = UnityWebRequest.Put($"{BaseUrl}/play/reset-playthrough", SerializeBody(requestParams));
+            request.method = "POST"; // hack to send POST to server instead of PUT
+            request.SetRequestHeader("Authorization", $"Bearer {token}");
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            Logger.Log("Requesting playthrough reset...");
+
+            yield return request.SendWebRequest();
+
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Logger.LogError("Error:" + request.error);
+                yield break;
+            }
+
+            var data = Encoding.UTF8.GetString(request.downloadHandler.data);
+
+            try
+            {
+                Logger.Log("Reset request complete");
+            }
+            catch (Exception e)
+            {
+                Logger.LogError($"Could not reset playthrough; {e}");
+                throw;
+            }
+
+            callback?.Invoke();
 
             // Need to dispose of WebRequest to prevent following error:
             // "A Native Collection has not been disposed, resulting in a memory leak. Enable Full StackTraces to get more details."
@@ -429,7 +477,7 @@ namespace CharismaSDK
         }
     }
 
-    public class ForkConversationResponse
+    public class ForkPlaythroughResponse
     {
         /// <summary>
         /// The new forked playthrough token.
@@ -442,7 +490,7 @@ namespace CharismaSDK
         public string PlaythroughUuid { get; }
 
         [JsonConstructor]
-        public ForkConversationResponse(string token, string playthroughUuid)
+        public ForkPlaythroughResponse(string token, string playthroughUuid)
         {
             NewToken = token;
             PlaythroughUuid = playthroughUuid;
@@ -453,14 +501,12 @@ namespace CharismaSDK
     {
         public Emotion[] Emotions { get; }
         public Memory[] Memories { get; }
-        public Impact[] Impacts { get; }
 
         [JsonConstructor]
-        public GetPlaythroughInfoResponse(Emotion[] emotions, Memory[] memories, Impact[] impacts)
+        public GetPlaythroughInfoResponse(Emotion[] emotions, Memory[] memories)
         {
             Emotions = emotions;
             Memories = memories;
-            Impacts = impacts;
         }
     }
 }
