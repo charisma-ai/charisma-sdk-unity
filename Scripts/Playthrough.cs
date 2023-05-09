@@ -192,6 +192,13 @@ namespace CharismaSDK
             {
                 Logger.LogWarning($"Received `problem` event: {JsonConvert.SerializeObject(message)}");
             });
+
+            room.OnLeave += (code) =>
+            {
+                SetConnectionState(ConnectionState.Disconnected);
+                Logger.Log($"Playthrough has been left. Code: {code}.");
+            };
+
         }
 
         // Disconnect from the current interaction.
@@ -238,7 +245,7 @@ namespace CharismaSDK
             string startGraphReferenceId = null
         )
         {
-            if (!IsReadyToPlay())
+            if (!IsConnected())
             {
                 Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
@@ -256,7 +263,7 @@ namespace CharismaSDK
         /// <param name="conversationUuid">Id of the conversation we want to resume.</param>
         public void Resume(string conversationUuid)
         {
-            if (!IsReadyToPlay())
+            if (!IsConnected())
             {
                 Logger.LogError("Socket not open. Connect before resuming the interaction");
                 return;
@@ -274,7 +281,7 @@ namespace CharismaSDK
         /// <param name="conversationUuid">Id of the conversation the tap should be sent to.</param>
         public void Tap(string conversationUuid)
         {
-            if (!IsReadyToPlay())
+            if (!IsConnected())
             {
                 Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
@@ -294,7 +301,7 @@ namespace CharismaSDK
         /// <param name="conversationUuid">Conversation to interact with.</param>
         public void Reply(string conversationUuid, string text)
         {
-            if (!IsReadyToPlay())
+            if (!IsConnected())
             {
                 Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
@@ -313,7 +320,7 @@ namespace CharismaSDK
         /// <param name="conversationUuid">Conversation to interact with.</param>
         public void Action(string conversationUuid, string action)
         {
-            if (!IsReadyToPlay())
+            if (!IsConnected())
             {
                 Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
@@ -327,7 +334,7 @@ namespace CharismaSDK
 
         public void Pause()
         {
-            if (!IsReadyToPlay())
+            if (!IsConnected())
             {
                 Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
@@ -339,7 +346,7 @@ namespace CharismaSDK
 
         public void Play()
         {
-            if (!IsReadyToPlay())
+            if (!IsConnected())
             {
                 Logger.LogError("Socket not open. Connect before starting the interaction");
                 return;
@@ -352,12 +359,6 @@ namespace CharismaSDK
         #endregion
 
         #region Private functions
-
-        private bool IsReadyToPlay()
-        {
-            return _connectionState == ConnectionState.Connected;
-        }
-
         private void SetConnectionState(ConnectionState connectionState)
         {
             if(_connectionState != connectionState)
