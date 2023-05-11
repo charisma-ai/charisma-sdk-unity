@@ -30,6 +30,9 @@ public class ExampleScript : MonoBehaviour
     private string _conversationUuid;
     private Playthrough _charisma;
 
+    [SerializeField]
+    private ConnectionStateDisplay _connectionStateDisplay;
+
     private void Start()
     {
         // The Charisma logger logs events to and from Charisma.
@@ -53,6 +56,11 @@ public class ExampleScript : MonoBehaviour
                     playthroughUuid: tokenResponse.PlaythroughUuid,
                     speechOptions
                 );
+
+                if (_connectionStateDisplay != default)
+                {
+                    _charisma.OnConnectionStateChange += _connectionStateDisplay.SetResultState;
+                }
 
                 // We can now connect to Charisma. Once we receive the ready callback, we can start our play-through.
                 _charisma.Connect(onReadyCallback: () =>
