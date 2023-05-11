@@ -81,7 +81,7 @@ namespace CharismaSDK.Tests
         [UnityTest]
         public IEnumerator GetMessageHistory([ValueSource("_validParameters")] CreatePlaythroughTokenParams parameterSet)
         {
-            
+            bool hasConnected = false;
 
             GetMessageHistoryResponse messageHistory = default;
 
@@ -112,6 +112,7 @@ namespace CharismaSDK.Tests
                     _charisma.Connect(onReadyCallback: () =>
                     {
                         _charisma.Start(_conversationUuid);
+                        hasConnected = true;
                     });
                 });
             });
@@ -121,7 +122,7 @@ namespace CharismaSDK.Tests
             // adding padding to accomodate for server response waiting time
             yield return StartAndWaitUntil(playthroughCreationCallback, () =>
             {
-                return _charisma.IsReadyToPlay;
+                return hasConnected;
             });
 
             // send conversation reply
@@ -321,6 +322,7 @@ namespace CharismaSDK.Tests
 
             bool triggeredOnMessageCallback = false;
             long firstMessageId = 0;
+            bool hasConnected = false;
 
             IEnumerator createToken = CharismaAPI.CreatePlaythroughToken(parameterSet, callback: (tokenResponse) =>
             {
@@ -364,6 +366,7 @@ namespace CharismaSDK.Tests
                     _charisma.Connect(onReadyCallback: () =>
                     {
                         _charisma.Start(_conversationUuid);
+                        hasConnected = true;
                     });
                 });
             });
@@ -373,7 +376,7 @@ namespace CharismaSDK.Tests
             // adding padding to accomodate for server response waiting time
             yield return StartAndWaitUntil(playthroughCreationCallback, () =>
             {
-                return _charisma.IsReadyToPlay;
+                return hasConnected;
             });
 
             // send conversation reply
