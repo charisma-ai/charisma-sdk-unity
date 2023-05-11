@@ -946,10 +946,10 @@ MonoBehaviour:
   storyId: 0
   storyVersion: 0
   apiKey: 
-  startFromScene: 1
+  startFromScene: 0
   useSpeech: 0
   speechOptions:
-    _audioOutput: 1
+    _audioOutput: 0
     _encoding: 1
   audioSource: {fileID: 1345421017}
   button: {fileID: 365702167}
