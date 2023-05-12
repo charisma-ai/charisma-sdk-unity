@@ -100,18 +100,19 @@ namespace CharismaSDK
             }
 
             var data = Encoding.UTF8.GetString(request.downloadHandler.data);
+            CreatePlaythroughTokenResponse deserialized;
 
             try
             {
-                var deserialized = JsonConvert.DeserializeObject<CreatePlaythroughTokenResponse>(data);
-                callback?.Invoke(deserialized);
+                deserialized = JsonConvert.DeserializeObject<CreatePlaythroughTokenResponse>(data);
                 Logger.Log("Token request complete");
             }
             catch (Exception e)
             {
-                Logger.LogError($"Could not deserialize token. Are you using the correct API key?: {e}");
-                throw;
+                throw new Exception($"Could not deserialize token. Are you using the correct API key? ", e);
             }
+
+            callback?.Invoke(deserialized);
 
             // Need to dispose of WebRequest to prevent following error:
             // "A Native Collection has not been disposed, resulting in a memory leak. Enable Full StackTraces to get more details."
@@ -140,18 +141,18 @@ namespace CharismaSDK
             }
 
             var data = Encoding.UTF8.GetString(request.downloadHandler.data);
+            CreateConversationResponse deserialized;
 
             try
             {
-                var deserialized = JsonConvert.DeserializeObject<CreateConversationResponse>(data);
-                callback?.Invoke(deserialized.ConversationUuid);
+                deserialized = JsonConvert.DeserializeObject<CreateConversationResponse>(data);
                 Logger.Log("Conversation request complete");
             }
             catch (Exception e)
             {
-                Logger.LogError($"Could not generate conversation; {e}");
-                throw;
+                throw new Exception($"Could not generate conversation; ", e);
             }
+            callback?.Invoke(deserialized.ConversationUuid);
 
             // Need to dispose of WebRequest to prevent following error:
             // "A Native Collection has not been disposed, resulting in a memory leak. Enable Full StackTraces to get more details."
@@ -178,7 +179,6 @@ namespace CharismaSDK
             }
 
             var request = UnityWebRequest.Get($"{BaseUrl}/play/message-history" + CreateQueryString(requestParams));
-            request.method = "GET"; 
             request.SetRequestHeader("Authorization", $"Bearer {token}");
 
             Logger.Log("Requesting message history...");
@@ -192,18 +192,18 @@ namespace CharismaSDK
             }
 
             var data = Encoding.UTF8.GetString(request.downloadHandler.data);
+            GetMessageHistoryResponse deserialized;
 
             try
             {
-                var deserialized = JsonConvert.DeserializeObject<GetMessageHistoryResponse>(data);
-                callback?.Invoke(deserialized);
+                deserialized = JsonConvert.DeserializeObject<GetMessageHistoryResponse>(data);
                 Logger.Log("Message history request complete");
             }
             catch (Exception e)
             {
-                Logger.LogError($"Could not get message history; {e}");
-                throw;
+                throw new Exception($"Could not get message history;", e);
             }
+            callback?.Invoke(deserialized);
 
             // Need to dispose of WebRequest to prevent following error:
             // "A Native Collection has not been disposed, resulting in a memory leak. Enable Full StackTraces to get more details."
@@ -218,7 +218,6 @@ namespace CharismaSDK
         public static IEnumerator GetPlaythroughInfo(string token, Action<GetPlaythroughInfoResponse> callback)
         {
             var request = UnityWebRequest.Get($"{BaseUrl}/play/playthrough-info");
-            request.method = "GET";
             request.SetRequestHeader("Authorization", $"Bearer {token}");
 
             Logger.Log("Requesting playthrough info...");
@@ -232,18 +231,19 @@ namespace CharismaSDK
             }
 
             var data = Encoding.UTF8.GetString(request.downloadHandler.data);
+            GetPlaythroughInfoResponse deserialized;
 
             try
             {
-                var deserialized = JsonConvert.DeserializeObject<GetPlaythroughInfoResponse>(data);
-                callback?.Invoke(deserialized);
+                deserialized = JsonConvert.DeserializeObject<GetPlaythroughInfoResponse>(data);
                 Logger.Log("Playthrough info request complete");
             }
             catch (Exception e)
             {
-                Logger.LogError($"Could not generate playthrough information; {e}");
-                throw;
+                throw new Exception($"Could not generate playthrough information.", e);
             }
+
+            callback?.Invoke(deserialized);
 
             // Need to dispose of WebRequest to prevent following error:
             // "A Native Collection has not been disposed, resulting in a memory leak. Enable Full StackTraces to get more details."
@@ -260,20 +260,16 @@ namespace CharismaSDK
         {
             var count = recallSaveValues.Count;
 
-            Logger.Log($"Setting memories - count: {count}");
-
-            object[] memoriesToSet = new object[count];
-            int i = 0;
+            Logger.Log($"Setting {count} memories...");
+            List<object> memoriesToSet = new List<object>();
             foreach (var entry in recallSaveValues)
             {
-                var memoryToSet = new
+                Logger.Log($"Setting memory `{entry.Key}` with value `{entry.Value}`...");
+                memoriesToSet.Add(new
                 {
                     recallValue = entry.Key,
                     saveValue = entry.Value,
-                };
-                Logger.Log($"Setting memory `{memoryToSet.recallValue}` with value `{memoryToSet.saveValue}`...");
-                memoriesToSet[i] = memoryToSet;
-                i++;
+                });
             }
 
             object requestParams = new
@@ -342,18 +338,19 @@ namespace CharismaSDK
             }
 
             var data = Encoding.UTF8.GetString(request.downloadHandler.data);
+            ForkPlaythroughResponse deserialized;
 
             try
             {
-                var deserialized = JsonConvert.DeserializeObject<ForkPlaythroughResponse>(data);
-                callback?.Invoke(deserialized);
+                deserialized = JsonConvert.DeserializeObject<ForkPlaythroughResponse>(data);
                 Logger.Log("Fork request complete");
             }
             catch (Exception e)
             {
-                Logger.LogError($"Could not request playthrough fork; {e}");
-                throw;
+                throw new Exception($"Could not request playthrough fork", e);
             }
+
+            callback?.Invoke(deserialized);
 
             // Need to dispose of WebRequest to prevent following error:
             // "A Native Collection has not been disposed, resulting in a memory leak. Enable Full StackTraces to get more details."
@@ -396,8 +393,7 @@ namespace CharismaSDK
             }
             catch (Exception e)
             {
-                Logger.LogError($"Could not reset playthrough; {e}");
-                throw;
+                throw new Exception($"Could not reset playthrough;", e);
             }
 
             callback?.Invoke();
