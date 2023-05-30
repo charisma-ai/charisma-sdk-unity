@@ -1,0 +1,11 @@
+{
+	"name": "CharismaSDK.Tests",
+	"references": [
+	"CharismaSDK"
+	],
+	"optionalUnityReferences": [
+	"TestAssemblies"
+	],
+	"includePlatforms": [],
+	"excludePlatforms": []
+}
