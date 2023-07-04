@@ -406,11 +406,24 @@ namespace CharismaSDK
         #endregion
     }
 
+    [Serializable]
     public class CreatePlaythroughTokenParams
     {
-        public int StoryId { get; }
-        public int StoryVersion { get; }
-        public string ApiKey { get; }
+        public int StoryId => _storyId;
+        public int StoryVersion => _storyVersion;
+        public string ApiKey => _apiKey;
+
+        [SerializeField]
+        [Tooltip("Unique ID of the story that you want to play.")]
+        private int _storyId;
+
+        [SerializeField]
+        [Tooltip("The version of the story you want to play. If set to 0, will load the latest published version. If set to -1, will load the current draft version. The draft also requires the API key to be set")]
+        private int _storyVersion;
+
+        [SerializeField]
+        [Tooltip("Used for loading the draft version of the story.")]
+        private string _apiKey;
 
         /// <summary>
         /// Charisma will generate a play-through token based on this setting.
@@ -422,9 +435,9 @@ namespace CharismaSDK
         /// <param name="apiKey">Api key from the Charisma website.</param>
         public CreatePlaythroughTokenParams(int storyId, int storyVersion, string apiKey = null)
         {
-            StoryId = storyId;
-            StoryVersion = storyVersion;
-            ApiKey = apiKey;
+            _storyId = storyId;
+            _storyVersion = storyVersion;
+            _apiKey = apiKey;
         }
     }
 

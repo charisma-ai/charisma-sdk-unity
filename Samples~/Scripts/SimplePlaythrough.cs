@@ -46,6 +46,8 @@ public class SimplePlaythrough : MonoBehaviour
     [Tooltip("Out-of-the-box textbox-based output field. Used if Standalone set to true.")]
     private SimpleCharismaActor _actor;
 
+    [SerializeField]
+    private ConnectionStateDisplay _debugDisplay;
 
     private string _conversationUuid;
     private Playthrough _playthrough;
