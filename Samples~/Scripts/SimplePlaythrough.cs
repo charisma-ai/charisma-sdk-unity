@@ -46,6 +46,10 @@ public class SimplePlaythrough : MonoBehaviour
     [Tooltip("Out-of-the-box textbox-based output field. Used if Standalone set to true.")]
     private SimpleCharismaActor _actor;
 
+    [Header(header: "Debug")]
+    [SerializeField]
+    private ConnectionStateDisplay _display;
+
 
     private string _conversationUuid;
     private Playthrough _playthrough;
@@ -108,6 +112,8 @@ public class SimplePlaythrough : MonoBehaviour
                     playthroughUuid: tokenResponse.PlaythroughUuid,
                     _speechOptions
                 );
+
+                _playthrough.OnConnectionStateChange += _display.SetResultState;
 
                 // Invoke any custom user defined action.
                 _onLoadCallback?.Invoke();
