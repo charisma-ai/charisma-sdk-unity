@@ -452,9 +452,20 @@ namespace CharismaSDK
                 yield break;
             }
 
+            // cannot allow multiple reconnection coroutines to run concurrently
+            if (IsReconnecting())
+            {
+                yield break;
+            }
+
             SetConnectionState(ConnectionState.Reconnecting);
 
             MainThreadConsumer.Instance.StartCoroutine(Reconnect());
+        }
+
+        private bool IsReconnecting()
+        {
+            return _connectionState == ConnectionState.Reconnecting;
         }
 
         private IEnumerator Reconnect()
@@ -521,6 +532,7 @@ namespace CharismaSDK
                 SetConnectionState(ConnectionState.Disconnected);
 
                 OnPingFailure?.Invoke();
+                MainThreadConsumer.Instance?.StartCoroutine(TryToReconnect());
                 return;
             }
 
