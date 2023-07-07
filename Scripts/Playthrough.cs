@@ -445,7 +445,6 @@ namespace CharismaSDK
 
         private IEnumerator TryToReconnect()
         {
-            Logger.Log("Trying to reconnect.");
             if (_calledByDisconnect)
             {
                 SetConnectionState(ConnectionState.Disconnected);
@@ -458,6 +457,7 @@ namespace CharismaSDK
                 yield break;
             }
 
+            Logger.Log("Trying to reconnect.");
             SetConnectionState(ConnectionState.Reconnecting);
 
             MainThreadConsumer.Instance.StartCoroutine(Reconnect());
@@ -470,34 +470,60 @@ namespace CharismaSDK
 
         private IEnumerator Reconnect()
         {
+            bool roomExpired = false;
             ColyseusRoom<object> room = null;
 
             while (room == null)
             {
-                // Try to reconnect
                 _reconnectionTryCount++;
 
                 if (_reconnectionTryCount <= MAXIMUM_RECONNECTION_ATTEMPTS)
                 {
+                    // Need to set the protocol to secure every time.
+                    // Colyseus resets to non-secure after even one failed attempt
                     _client.Settings.useSecureProtocol = true;
-                    var t = _client.Reconnect(_room.Id, _room.SessionId);
 
-                    yield return new WaitUntil(() => t.IsCompleted);
+                    Task<ColyseusRoom<object>> reconnectionTask;
+                    if (roomExpired)
+                    {
+                        // If the room has expired, attempt to create a new one.
+                        reconnectionTask = _client.JoinOrCreate("chat", _roomOptions);
+                    }
+                    else
+                    {
+                        // Try just reconnecting otherwise.
+                        reconnectionTask = _client.Reconnect(_room.Id, _room.SessionId);
+                    }
+
+                    yield return new WaitUntil(() => reconnectionTask.IsCompleted);
 
                     try
                     {
-                        room = t.Result;
+                        room = reconnectionTask.Result;
 
-                        Logger.Log($"Succesfully reconnected.");
-
+                        // If the room is succesfully generated and no error is catched
+                        // code will progress here and re-assign the _room variable.
                         _room = room;
                         AssignRoomCallbacks();
                         SetConnectionState(ConnectionState.Connected);
+                        Logger.Log($"Succesfully reconnected.");
                         yield break;
                     }
                     catch (Exception e)
                     {
                         Logger.LogWarning($"Failed to reconnect - exception: {e.Message}");
+
+                        // listen for "Room */ not found" error messages
+                        // must re-create room as a result, as room has expired
+                        if (!roomExpired)
+                        {
+                            var indexOfRoom = e.Message.IndexOf("room");
+                            var indexOfNotFound = e.Message.IndexOf("not found");
+                            if (indexOfRoom != -1 && indexOfRoom < indexOfNotFound)
+                            {
+                                roomExpired = true;
+                            }
+                        }
                     }
 
                     float timePassed = 0f;
@@ -514,6 +540,7 @@ namespace CharismaSDK
                     break;
                 }
             }
+
         }
 
         private void FirePing()
