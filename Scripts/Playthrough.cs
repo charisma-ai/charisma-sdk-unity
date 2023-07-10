@@ -91,7 +91,7 @@ namespace CharismaSDK
         public event ConnectionStateChangeDelegate OnConnectionStateChange;
 
         /// <summary>
-        /// Called when a pong event is received succesfully from the Playthrough host.
+        /// Called when a pong event is received successfully from the Playthrough host.
         /// </summary>
         public event PingSuccessDelegate OnPingSuccess;
 
@@ -147,7 +147,7 @@ namespace CharismaSDK
         /// <summary>
         /// Connect to Charisma
         /// </summary>
-        /// <param name="onReadyCallback">Called when successfully connected to Charisma.</param>
+        /// <param name="onReadyCallback">Called when successfullyconnected to Charisma.</param>
         public async void Connect(Action onReadyCallback)
         {
             if (IsConnected())
@@ -160,7 +160,7 @@ namespace CharismaSDK
 
             _onReadyCallback = onReadyCallback;
 
-            await CreateClientAndJoinRoom();
+            CreateClientAndJoinRoom();
         }
 
         // Disconnect from the current interaction.
@@ -346,7 +346,7 @@ namespace CharismaSDK
             return _connectionState == ConnectionState.Disconnected;
         }
 
-        private async Task CreateClientAndJoinRoom()
+        private async void CreateClientAndJoinRoom()
         {
             _client = new ColyseusClient(BaseUrl);
 
@@ -497,28 +497,30 @@ namespace CharismaSDK
 
                     yield return new WaitUntil(() => reconnectionTask.IsCompleted);
 
-                    try
+                    if (reconnectionTask.Status != TaskStatus.Faulted)
                     {
                         room = reconnectionTask.Result;
 
-                        // If the room is succesfully generated and no error is catched
+                        // If the room is successfully generated and no error is catched
                         // code will progress here and re-assign the _room variable.
                         _room = room;
                         AssignRoomCallbacks();
                         SetConnectionState(ConnectionState.Connected);
-                        Logger.Log($"Succesfully reconnected.");
+                        Logger.Log($"Successfully reconnected.");
                         yield break;
                     }
-                    catch (Exception e)
+                    else
                     {
-                        Logger.LogWarning($"Failed to reconnect - exception: {e.Message}");
+                        var exception = reconnectionTask.Exception;
+
+                        Logger.LogWarning($"Failed to reconnect - exception: {exception.Message}");
 
                         // listen for "Room */ not found" error messages
                         // must re-create room as a result, as room has expired
                         if (!roomExpired)
                         {
-                            var indexOfRoom = e.Message.IndexOf("room");
-                            var indexOfNotFound = e.Message.IndexOf("not found");
+                            var indexOfRoom = exception.Message.IndexOf("room");
+                            var indexOfNotFound = exception.Message.IndexOf("not found");
                             if (indexOfRoom != -1 && indexOfRoom < indexOfNotFound)
                             {
                                 roomExpired = true;
