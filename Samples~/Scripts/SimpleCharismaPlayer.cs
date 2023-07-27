@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,11 +14,32 @@ public class SimpleCharismaPlayer : MonoBehaviour
     private Button _replyButton;
 
     private Action<string> _sendTextEvent;
+    private SimplePlaythrough _simplePlaythrough;
+
+    private void Awake()
+    {
+        StartCoroutine(Bind());
+    }
+
+    private IEnumerator Bind()
+    {
+        var instance = SimplePlaythrough.Instance;
+
+        if (instance != default)
+        {
+            _simplePlaythrough = instance;
+            _replyButton.onClick.AddListener(SendPlayerMessage);
+        }
+        else
+        {
+            yield return new WaitForSeconds(1.0f);
+            yield return Bind();
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
     {
-        _replyButton.onClick.AddListener(SendPlayerMessage);
     }
 
     private void Update()
@@ -35,7 +57,7 @@ public class SimpleCharismaPlayer : MonoBehaviour
             return; 
         }
 
-        _sendTextEvent?.Invoke(_input.text);
+        _simplePlaythrough.SendReply(_input.text);
 
         _input.text = string.Empty;
     }

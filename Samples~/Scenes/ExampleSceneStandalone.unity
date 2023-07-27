@@ -271,17 +271,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5709034473373716926, guid: 3baf8cc94e401af46a784f8e39492b03, type: 3}
   m_PrefabInstance: {fileID: 2047360665951193983}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &560436556 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 130948043745724639, guid: 3baf8cc94e401af46a784f8e39492b03, type: 3}
-  m_PrefabInstance: {fileID: 2047360665951193983}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a4b5e368bc961b45a21dce62fb4fb1f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &562809188
 GameObject:
   m_ObjectHideFlags: 0
@@ -608,16 +597,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _enableLogging: 0
-  _storyId: 15452
-  _versionId: -1
-  _apiKey: cff59833-71fc-42c4-9077-220d42aef65a
+  _storyId: 0
+  _versionId: 0
+  _apiKey: 
   _speechOptions:
     _audioOutput: 0
     _encoding: 1
   _useSpeechOutput: 0
-  _standalone: 1
-  _player: {fileID: 560436556}
-  _actor: {fileID: 530274}
 --- !u!1 &1376615697
 GameObject:
   m_ObjectHideFlags: 0
@@ -648,6 +634,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
   m_HorizontalAxis: Horizontal
   m_VerticalAxis: Vertical
   m_SubmitButton: Submit

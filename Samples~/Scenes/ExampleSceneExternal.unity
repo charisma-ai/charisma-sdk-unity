@@ -1025,16 +1025,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _enableLogging: 0
-  _storyId: 15452
-  _versionId: -1
-  _apiKey: cff59833-71fc-42c4-9077-220d42aef65a
+  _storyId: 0
+  _versionId: 0
+  _apiKey: 
   _speechOptions:
     _audioOutput: 0
     _encoding: 1
   _useSpeechOutput: 0
-  _standalone: 0
-  _player: {fileID: 0}
-  _actor: {fileID: 0}
 --- !u!1 &1376615697
 GameObject:
   m_ObjectHideFlags: 0
@@ -1065,6 +1062,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
   m_HorizontalAxis: Horizontal
   m_VerticalAxis: Vertical
   m_SubmitButton: Submit

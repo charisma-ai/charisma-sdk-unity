@@ -1,5 +1,6 @@
 using CharismaSDK;
 using CharismaSDK.Events;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,16 +23,9 @@ public class ExampleScript : MonoBehaviour
     [SerializeField]
     private AudioSource _audioOutput;
 
-
-    // Start is called before the first frame update
-    void Start()
+    private void Awake()
     {
-        _playthrough.SetOnLoadCallback(OnLoadPlaythrough);
-        _playthrough.SetOnMessageCallback(OnMessageReceived);
-
-        _playthrough.LoadPlaythrough();
-
-        _replyButton.onClick.AddListener(SendPlayerMessage);
+        StartCoroutine(Bind());
     }
 
     private void Update()
@@ -39,6 +33,24 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyDown(key: KeyCode.Return))
         {
             SendPlayerMessage();
+        }
+    }
+
+    private IEnumerator Bind()
+    {
+        var instance = SimplePlaythrough.Instance;
+
+        if (instance != default)
+        {
+            _playthrough = instance;
+
+            _playthrough.OnMessage += OnMessageReceived;
+            _replyButton.onClick.AddListener(SendPlayerMessage);
+        }
+        else
+        {
+            yield return new WaitForSeconds(1.0f);
+            yield return Bind();
         }
     }
 
@@ -55,31 +67,10 @@ public class ExampleScript : MonoBehaviour
         _textInput.text = string.Empty;
     }
 
-    private void OnLoadPlaythrough()
-    {
-        _playthrough.StartPlaythrough();
-    }
-
     private void OnMessageReceived(MessageEvent message)
     {
-        Debug.Log(message);
-
-        // If the message is a panel-node, we should operate on this data without trying to generate audio or access the text & character data of the node since panel-nodes have neither.
-        if (message.messageType == MessageType.panel)
-        {
-            Debug.Log("This is a panel node");
-        }
-        else
-        {
-            TryOutputAudio(message);
-            TryOutputText(message);
-        }
-
-        // If this is the end of the story, we disconnect from Charisma.
-        if (message.endStory)
-        {
-            _playthrough.Playthrough.Disconnect();
-        }
+        TryOutputAudio(message);
+        TryOutputText(message);
     }
 
     private void TryOutputAudio(MessageEvent message)
@@ -97,7 +88,7 @@ public class ExampleScript : MonoBehaviour
             else if (message.message.speech.audio.Length > 0)
             {
                 // Once we have received a message character message, we might want to play the audio. To do this we run the GetClip method and wait for the callback which contains our audio clip, then pass it to the audio player.
-                Audio.GetAudioClip(_playthrough.Playthrough.SpeechOptions.encoding.ToString(), message.message.speech.audio, onAudioGenerated: (clip =>
+                Audio.GetAudioClip(_playthrough.SpeechOptions.encoding.ToString(), message.message.speech.audio, onAudioGenerated: (clip =>
                 {
                     _audioOutput.clip = clip;
                     _audioOutput.Play();

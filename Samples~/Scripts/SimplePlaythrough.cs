@@ -32,20 +32,11 @@ public class SimplePlaythrough : MonoBehaviour
     [Tooltip("Toggle to output messages as audible Speech.")]
     private bool _useSpeechOutput;
 
-    [SerializeField]
-    [Tooltip("Determines whether the playthrough will be use its own Input/Player and Output/Actor fields (true), or be commanded externally(false). Standalone will auto play the conversation on script activation.")]
-    private bool _standalone = true;
+    // Singleton pattern
+    public static SimplePlaythrough Instance { get; private set; }
 
-    [Header(header: "Input")]
-    [SerializeField]
-    [Tooltip("Out-of-the-box textbox-based input field. Used if Standalone set to true.")]
-    private SimpleCharismaPlayer _player;
-
-    [Header(header: "Output")]
-    [SerializeField]
-    [Tooltip("Out-of-the-box textbox-based output field. Used if Standalone set to true.")]
-    private SimpleCharismaActor _actor;
-
+    public SpeechOptions SpeechOptions => _speechOptions;
+    public bool UseSpeechOutput => _useSpeechOutput;
 
     private string _conversationUuid;
     private Playthrough _playthrough;
@@ -53,31 +44,31 @@ public class SimplePlaythrough : MonoBehaviour
     private CreatePlaythroughTokenParams _playthroughTokenParams;
 
     private Action _onLoadCallback;
-    private MessageDelegate _onMessageCallback;
 
-    public Playthrough Playthrough => _playthrough;
+    public event MessageDelegate OnMessage;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            // Destroy any other awakening SimplePlaythroughs
+            Destroy(this);
+        }
+        else
+        {
+            // Register static Instance
+            Instance = this;
+        }
+    }
 
     private void Start()
     {
-        // If _standalone flag is set, auto run playthrough with custom functions
-        if (_standalone)
-        {
-            // Hook up send reply callback, to bind the function to the external player.
-            _player.SetOnReplyCallback(SendReply);
+        // Set up default-behaviour callbacks
+        // Once load is complete, start the playthrough.
+        SetOnLoadCallback(StartPlaythrough);
 
-            // Set up Actor based on the speech configuration provided within the playthrough.
-            _actor.SetSpeechOptions(_speechOptions);
-            _actor.SetUseSpeechOutput(_useSpeechOutput);
-
-            // Set up default-behaviour callbacks
-            // Once load is complete, start the playthrough.
-            SetOnLoadCallback(StartPlaythrough);
-            // Hook up standard handle message callback.
-            SetOnMessageCallback(DefaultMessageCallback);
-
-            // Begin loading playthrough.
-            LoadPlaythrough();
-        }
+        // Begin loading playthrough.
+        LoadPlaythrough();
     }
 
 
@@ -137,12 +128,8 @@ public class SimplePlaythrough : MonoBehaviour
             _playthrough.Start(_conversationUuid);
         });
 
-        // On message callback needs to be assigned.
-        if (_onMessageCallback != default)
-        {
-            // We can now subscribe to message events from charisma.
-            _playthrough.OnMessage += HandleMessage;
-        }
+        // We can now subscribe to message events from charisma.
+        _playthrough.OnMessage += ParseMessage;
     }
 
     /// <summary>
@@ -186,38 +173,20 @@ public class SimplePlaythrough : MonoBehaviour
         return _playthrough != default;
     }
 
-    /// <summary>
-    /// Sets the callback to execute on succesfully loading the Playthrough.
-    /// Should be set before loading the Playthrough.
-    /// </summary>
-    public void SetOnLoadCallback(Action callback)
+    public void ForceStop()
     {
-        _onLoadCallback = callback;
-    }
-
-    /// <summary>
-    /// Sets the callback to execute on succesfully receiving a message from the playthrough.
-    /// Should be set before starting the Playthrough.
-    /// </summary>
-    public void SetOnMessageCallback(MessageDelegate callback)
-    {
-        _onMessageCallback = callback;
+        _playthrough?.Disconnect();
     }
 
     #endregion
 
     #region Private functions
 
-    private void DefaultMessageCallback(MessageEvent message)
-    {
-        _actor.SendMessage(message);
-    }
-
     /// <summary>
     /// Standard Message handling behaviour, catching panels and triggering disconnects on endStory.
     /// </summary>
     /// <param name="message">Message Event received from currently active Playthrough.</param>
-    private void HandleMessage(MessageEvent message)
+    private void ParseMessage(MessageEvent message)
     {
         Debug.Log(message);
 
@@ -228,7 +197,7 @@ public class SimplePlaythrough : MonoBehaviour
         }
         else
         {
-            _onMessageCallback?.Invoke(message);
+            OnMessage?.Invoke(message);
         }
 
         // If this is the end of the story, we disconnect from Charisma.
@@ -236,6 +205,15 @@ public class SimplePlaythrough : MonoBehaviour
         {
             _playthrough.Disconnect();
         }
+    }
+
+    /// <summary>
+    /// Sets the callback to execute on succesfully loading the Playthrough.
+    /// Should be set before loading the Playthrough.
+    /// </summary>
+    private void SetOnLoadCallback(Action callback)
+    {
+        _onLoadCallback = callback;
     }
 
     #endregion

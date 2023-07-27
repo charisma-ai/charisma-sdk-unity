@@ -1,5 +1,6 @@
 ﻿using CharismaSDK;
 using CharismaSDK.Events;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,20 +18,42 @@ internal class SimpleCharismaActor : MonoBehaviour
     private AudioSource _audioOutput;
 
 
-    public void SetSpeechOptions(SpeechOptions speechOptions)
+    private void Awake()
+    {
+        StartCoroutine(Bind());
+    }
+
+    private IEnumerator Bind()
+    {
+        var instance = SimplePlaythrough.Instance;
+
+        if (instance != default)
+        {
+            instance.OnMessage += SendMessage;
+            SetSpeechOptions(instance.SpeechOptions);
+            SetUseSpeechOutput(instance.UseSpeechOutput);
+        }
+        else
+        {
+            yield return new WaitForSeconds(1.0f);
+            yield return Bind();
+        }
+    }
+
+    private void SendMessage(MessageEvent message)
+    {
+        TryOutputAudio(message);
+        TryOutputText(message);
+    }
+
+    private void SetSpeechOptions(SpeechOptions speechOptions)
     {
         _speechOptions = speechOptions;
     }
 
-    public void SetUseSpeechOutput(bool speechOutput)
+    private void SetUseSpeechOutput(bool speechOutput)
     {
         _useSpeechOutput = speechOutput;
-    }
-
-    internal void SendMessage(MessageEvent message)
-    {
-        TryOutputAudio(message);
-        TryOutputText(message);
     }
 
     private void TryOutputAudio(MessageEvent message)
