@@ -173,11 +173,6 @@ public class SimplePlaythrough : MonoBehaviour
         return _playthrough != default;
     }
 
-    public void ForceStop()
-    {
-        _playthrough?.Disconnect();
-    }
-
     #endregion
 
     #region Private functions
