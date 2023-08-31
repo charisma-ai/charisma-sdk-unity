@@ -148,7 +148,7 @@ namespace CharismaSDK
         /// Connect to Charisma
         /// </summary>
         /// <param name="onReadyCallback">Called when successfullyconnected to Charisma.</param>
-        public async void Connect(Action onReadyCallback)
+        public void Connect(Action onReadyCallback)
         {
             if (IsConnected())
             {
