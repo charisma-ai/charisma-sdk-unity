@@ -26,6 +26,21 @@ namespace CharismaSDK.Events
         public string error;
     }
 
+    [Preserve]
+    [Serializable]
+    public class SpeechRecognitionResult
+    {
+        public int confidence;
+
+        public int durationInSeconds;
+
+        public bool speechFinal;
+
+        public bool isFinal;
+
+        public string text;
+    }
+
     public enum MessageType
     {
         character,

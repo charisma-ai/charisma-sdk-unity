@@ -53,7 +53,14 @@ namespace CharismaSDK
         ///  - To add speech, pass in a new speech config.
         ///  - To remove audio, set this to null.
         /// </summary>
-        public SpeechOptions SpeechOptions { get; set; }
+        public SpeechOptions SpeechOptions => _speechOptions;
+
+        /// <summary>
+        /// Assign a Speech recognition config.
+        ///  - used only when speechRecognition is enabled
+        /// </summary>
+        public SpeechRecognitionOptions SpeechRecognitionOptions => _speechRecognitionOptions;
+
 
         #endregion
 
@@ -108,10 +115,18 @@ namespace CharismaSDK
         private Dictionary<string, object> _roomOptions;
         private ColyseusRoom<object> _room;
 
+
+        // use default empty constructor for initialisation
+        // these setting should be in the playthrough anyway
+        private SpeechOptions _speechOptions = new SpeechOptions();
+        private SpeechRecognitionOptions _speechRecognitionOptions = new SpeechRecognitionOptions();
+
+        private Microphone _microphone;
+
+
         private ConnectionState _connectionState;
 
         private Action _onReadyCallback;
-
 
         private int _pingCount = 0;
         private int _reconnectionTryCount = 0;
@@ -127,11 +142,23 @@ namespace CharismaSDK
         /// Interaction with Charisma
         /// </summary>
         /// <param name="token">A valid play-though token.</param>
-        public Playthrough(string token, string playthroughUuid, SpeechOptions speechOptions = null)
+        public Playthrough(string token, string playthroughUuid, SpeechOptions speechOptions = default, SpeechRecognitionOptions speechRecognitionOptions = default)
         {
             Token = token;
             PlaythroughUuid = playthroughUuid;
-            SpeechOptions = speechOptions;
+
+            // keep initial empty constructor instances
+            // unless we receive new values
+            if (speechOptions != default)
+            {
+                _speechOptions = speechOptions;
+            }
+
+            if (speechRecognitionOptions != default)
+            {
+                _speechRecognitionOptions = speechRecognitionOptions;
+            }
+
             SetConnectionState(ConnectionState.Disconnected);
         }
 
@@ -199,7 +226,7 @@ namespace CharismaSDK
 
         public void SetSpeechConfig(SpeechOptions speechOptions)
         {
-            SpeechOptions = speechOptions;
+            _speechOptions = speechOptions;
         }
 
         /// <summary>
@@ -321,6 +348,41 @@ namespace CharismaSDK
 
             Logger.Log("Sending `play` event");
             _room?.Send("play");
+        }
+
+        public void StartSpeechRecognition(GameObject gameObject, int microphoneId = 0)
+        {
+            if (!IsConnected())
+            {
+                Logger.LogError("Socket not open. Connect before starting the interaction");
+                return;
+            };
+
+            if (_microphone == null)
+            {
+                _microphone = gameObject.TryGetComponent(out Microphone mic) ? mic : gameObject.AddComponent<Microphone>();
+            }
+
+            _microphone.Initialize(microphoneId, SpeechRecognitionOptions.SampleRate);
+            _microphone.MicrophoneCallback += data => _room?.Send("speech-recognition-chunk", data);
+
+            var speechRecognitionOptions = new Dictionary<string, object>
+            {
+                ["service"] = SpeechRecognitionOptions.Service,
+                ["sampleRate"] = SpeechRecognitionOptions.SampleRate,
+                //["languageCode"] = SpeechRecognitionOptions.LanguageCode,
+                //["encoding"] = SpeechRecognitionOptions.Encoding
+            };
+
+            _room?.Send("speech-recognition-start", speechRecognitionOptions);
+            _microphone.StartListening();
+        }
+
+        public void StopSpeechRecognition()
+        {
+            _room?.Send("speech-recognition-stop");
+            _microphone.MicrophoneCallback = null;
+            _microphone.StopListening();
         }
 
         #endregion

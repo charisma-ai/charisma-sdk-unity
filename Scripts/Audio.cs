@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -183,4 +183,138 @@ namespace CharismaSDK
     }
 
 
+
+    [Serializable]
+    public class SpeechRecognitionOptions
+    {
+        public enum SpeechRecognitionService
+        {
+            Unified,
+            Google,
+            Aws,
+            Deepgram
+        }
+
+        public enum SpeechRecognitionLanguageCode
+        {
+            DE_DE,
+            EN_AU,
+            EN_GB,
+            EN_US,
+            ES_US,
+            FR_CA,
+            FR_FR,
+            IT_IT,
+            JA_JP,
+            KO_KR,
+            PT_BR,
+            ZH_CN
+        }
+
+        public string Service
+        {
+
+            get
+            {
+                switch (_service)
+                {
+                    case SpeechRecognitionService.Unified:
+                        return "unified";
+                    case SpeechRecognitionService.Google:
+                        return "unified:google";
+                    case SpeechRecognitionService.Aws:
+                        return "unified:aws";
+                    case SpeechRecognitionService.Deepgram:
+                        return "unified:deepgram";
+                    default:
+                        Logger.LogError("Unknown audio format");
+                        return null;
+                }
+            }
+        }
+
+        public string Encoding
+        {
+            get
+            {
+                switch (_encoding)
+                {
+                    case SpeechOptions.Encoding.Mp3:
+                        return "mp3";
+                    case SpeechOptions.Encoding.Ogg:
+                        return "ogg";
+                    case SpeechOptions.Encoding.Wav:
+                        return "wav";
+                    default:
+                        Logger.LogError("Unknown audio format");
+                        return null;
+                }
+            }
+        }
+
+        public string LanguageCode
+        {
+            get
+            {
+                switch (_languageCode)
+                {
+                    case SpeechRecognitionLanguageCode.DE_DE:
+                        return "de-DE";
+                    case SpeechRecognitionLanguageCode.EN_AU:
+                        return "en-AU";
+                    case SpeechRecognitionLanguageCode.EN_GB:
+                        return "en-GB";
+                    case SpeechRecognitionLanguageCode.EN_US:
+                        return "en-US";
+                    case SpeechRecognitionLanguageCode.ES_US:
+                        return "es_US";
+                    case SpeechRecognitionLanguageCode.FR_CA:
+                        return "fr-CA";
+                    case SpeechRecognitionLanguageCode.FR_FR:
+                        return "fr-FR";
+                    case SpeechRecognitionLanguageCode.IT_IT:
+                        return "it-IT";
+                    case SpeechRecognitionLanguageCode.JA_JP:
+                        return "ja-JP";
+                    case SpeechRecognitionLanguageCode.KO_KR:
+                        return "ko-KR";
+                    case SpeechRecognitionLanguageCode.PT_BR:
+                        return "pt-BR";
+                    case SpeechRecognitionLanguageCode.ZH_CN:
+                        return "zh-CN";
+                    default:
+                        Logger.LogError("Language code not found or invalid.");
+                        return null;
+                }
+            }
+
+        }
+
+        public int SampleRate => _sampleRate;
+
+        [SerializeField]
+        private SpeechRecognitionService _service = SpeechRecognitionService.Unified;
+
+        [SerializeField]
+        private SpeechOptions.Encoding _encoding = SpeechOptions.Encoding.Mp3;
+
+        [SerializeField]
+        private SpeechRecognitionLanguageCode _languageCode = SpeechRecognitionLanguageCode.EN_GB;
+
+        [SerializeField]
+        private int _sampleRate = 16000;
+
+        public SpeechRecognitionOptions()
+        {
+
+        }
+
+        public SpeechRecognitionOptions(SpeechRecognitionService service, SpeechOptions.Encoding encoding, SpeechRecognitionLanguageCode languageCode, int sampleRate)
+        {
+            _service = service;
+            _encoding = encoding;
+            _sampleRate = sampleRate;
+            _languageCode = languageCode;
+        }
+    }
 }
