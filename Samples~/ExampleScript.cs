@@ -18,7 +18,7 @@ public class ExampleScript : MonoBehaviour
     [Min(1)] public int startFromScene;
 
     public bool useSpeech;
-    public SpeechOptions speechOptions = new SpeechOptions(SpeechOptions.AudioOutput.Buffer, SpeechOptions.Encoding.Ogg);
+    public SpeechOptions speechOptions = new SpeechOptions();
 
     public AudioSource audioSource;
 

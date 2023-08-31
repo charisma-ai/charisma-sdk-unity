@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -100,8 +101,16 @@ namespace CharismaSDK
     [Serializable]
     public class SpeechOptions
     {
-        [SerializeField] private AudioOutput _audioOutput;
-        [SerializeField] private Encoding _encoding;
+        [SerializeField] private AudioOutput _audioOutput = AudioOutput.Buffer;
+        /// <summary>
+        /// Defaults to a list of all audio encodings that Unity supports out of the box through the
+        /// `DownloadHandlerAudioClip.GetContent` method.
+        /// </summary>
+        [SerializeField] private List<Encoding> _encoding = new List<Encoding> {
+            Encoding.Ogg,
+            Encoding.Mp3,
+            Encoding.Wav
+        };
 
         public enum Encoding
         {
@@ -117,33 +126,41 @@ namespace CharismaSDK
             Buffer
         }
 
+        public SpeechOptions()
+        {
+        }
+
         /// <summary>
         /// Set the audio information coming back from Charisma.
         /// </summary>
         /// <param name="output">What output format to use</param>
         /// <param name="encoding">What encoding to use</param>
-        public SpeechOptions(AudioOutput output, Encoding encoding)
+        public SpeechOptions(AudioOutput output, List<Encoding> encoding)
         {
             this._audioOutput = output;
             this._encoding = encoding;
         }
 
-        public string encoding
+        public List<string> encoding
         {
             get
             {
-                switch (_encoding)
-                {
-                    case Encoding.Mp3:
-                        return "mp3";
-                    case Encoding.Ogg:
-                        return "ogg";
-                    case Encoding.Wav:
-                        return "wav";
-                    default:
-                        Logger.LogError("Unknown audio format");
-                        return null;
+                List<string> encodings = new List<string>();
+                foreach(var entry in _encoding) {
+                    if (entry == Encoding.Mp3)
+                    {
+                        encodings.Add("mp3");
+                    }
+                    else if(entry == Encoding.Ogg)
+                    {
+                        encodings.Add("ogg");
+                    }
+                    else if (entry == Encoding.Wav)
+                    {
+                        encodings.Add("wav");
+                    }
                 }
+                return encodings;
             }
         }
 
