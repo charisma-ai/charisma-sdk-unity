@@ -2,6 +2,7 @@ using System;
 using Newtonsoft.Json;
 using UnityEngine;
 using Colyseus;
+using CharismaSDK.Sound;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Collections;
@@ -61,7 +62,6 @@ namespace CharismaSDK
         /// </summary>
         public SpeechRecognitionOptions SpeechRecognitionOptions => _speechRecognitionOptions;
 
-
         #endregion
 
         #region Degelates
@@ -70,6 +70,7 @@ namespace CharismaSDK
         public delegate void StartTypingDelegate(Events.StartTypingEvent message);
         public delegate void StopTypingDelegate(Events.StopTypingEvent message);
         public delegate void ConnectionStateChangeDelegate(ConnectionState connectionState);
+        public delegate void SpeechRecognitionResultDelegate(Events.SpeechRecognitionResult result);
         public delegate void PingSuccessDelegate();
         public delegate void PingFailureDelegate();
 
@@ -98,6 +99,11 @@ namespace CharismaSDK
         public event ConnectionStateChangeDelegate OnConnectionStateChange;
 
         /// <summary>
+        /// Called when valid speech is detected from the local audio Input.
+        /// </summary>
+        public event SpeechRecognitionResultDelegate OnSpeechRecognitionResult;
+
+        /// <summary>
         /// Called when a pong event is received successfully from the Playthrough host.
         /// </summary>
         public event PingSuccessDelegate OnPingSuccess;
@@ -121,7 +127,7 @@ namespace CharismaSDK
         private SpeechOptions _speechOptions = new SpeechOptions();
         private SpeechRecognitionOptions _speechRecognitionOptions = new SpeechRecognitionOptions();
 
-        private Microphone _microphone;
+        private Sound.Microphone _microphone;
 
 
         private ConnectionState _connectionState;
@@ -360,19 +366,22 @@ namespace CharismaSDK
 
             if (_microphone == null)
             {
-                _microphone = gameObject.TryGetComponent(out Microphone mic) ? mic : gameObject.AddComponent<Microphone>();
+                _microphone = gameObject.TryGetComponent(out Sound.Microphone mic) ? mic : gameObject.AddComponent<Sound.Microphone>();
             }
 
-            _microphone.Initialize(microphoneId, SpeechRecognitionOptions.SampleRate);
+            _microphone.Initialize(microphoneId, _speechRecognitionOptions.SampleRate);
             _microphone.MicrophoneCallback += data => _room?.Send("speech-recognition-chunk", data);
 
             var speechRecognitionOptions = new Dictionary<string, object>
             {
-                ["service"] = SpeechRecognitionOptions.Service,
-                ["sampleRate"] = SpeechRecognitionOptions.SampleRate,
-                //["languageCode"] = SpeechRecognitionOptions.LanguageCode,
-                //["encoding"] = SpeechRecognitionOptions.Encoding
+                ["service"] = _speechRecognitionOptions.Service,
+                ["sampleRate"] = _speechRecognitionOptions.SampleRate
             };
+
+            if(_speechRecognitionOptions.LanguageCode != default)
+            {
+                speechRecognitionOptions.Add("languageCode", _speechRecognitionOptions.LanguageCode);
+            }
 
             _room?.Send("speech-recognition-start", speechRecognitionOptions);
             _microphone.StartListening();
@@ -472,6 +481,12 @@ namespace CharismaSDK
             {
                 Logger.Log($"Received `stop-typing` event: {JsonConvert.SerializeObject(message)}");
                 OnStopTyping?.Invoke(message);
+            });
+
+            _room.OnMessage<Events.SpeechRecognitionResult>("speech-recognition-result", (message) =>
+            {
+                Logger.Log($"Received `speech-recognition-result` event: {JsonConvert.SerializeObject(message)}");
+                OnSpeechRecognitionResult?.Invoke(message);
             });
 
             _room.OnMessage<Events.ProblemEvent>("problem", (message) =>

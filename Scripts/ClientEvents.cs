@@ -1,3 +1,5 @@
+using CharismaSDK.Sound;
+
 namespace CharismaSDK.Events
 {
     /// <summary>

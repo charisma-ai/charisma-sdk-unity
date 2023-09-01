@@ -1,7 +1,8 @@
 using System;
 using UnityEngine;
 
-namespace CharismaSDK {
+namespace CharismaSDK.Sound
+{
 
     public class Microphone : MonoBehaviour
     {
