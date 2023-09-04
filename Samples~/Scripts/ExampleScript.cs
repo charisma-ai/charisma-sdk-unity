@@ -36,6 +36,9 @@ public class ExampleScript : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Async function, used to Bind this Script to the SimplePlaythrough singleton
+    /// </summary>
     private IEnumerator Bind()
     {
         var instance = SimplePlaythrough.Instance;
@@ -88,7 +91,7 @@ public class ExampleScript : MonoBehaviour
             else if (message.message.speech.audio.Length > 0)
             {
                 // Once we have received a message character message, we might want to play the audio. To do this we run the GetClip method and wait for the callback which contains our audio clip, then pass it to the audio player.
-                Audio.GetAudioClip(_playthrough.SpeechOptions.encoding.ToString(), message.message.speech.audio, onAudioGenerated: (clip =>
+                Audio.GetAudioClip(message.message.speech.encoding, message.message.speech.audio, onAudioGenerated: (clip =>
                 {
                     _audioOutput.clip = clip;
                     _audioOutput.Play();

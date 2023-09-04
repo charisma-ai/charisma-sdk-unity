@@ -25,7 +25,7 @@ public class SimplePlaythrough : MonoBehaviour
 
     [SerializeField]
     [Tooltip("Configuration node of the Speech output.")]
-    private SpeechOptions _speechOptions = new SpeechOptions(SpeechOptions.AudioOutput.Buffer, SpeechOptions.Encoding.Ogg);
+    private SpeechOptions _speechOptions = new SpeechOptions();
 
     [Header(header: "Settings")]
     [SerializeField]
