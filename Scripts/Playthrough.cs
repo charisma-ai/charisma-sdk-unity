@@ -2,6 +2,7 @@ using System;
 using Newtonsoft.Json;
 using UnityEngine;
 using Colyseus;
+using CharismaSDK.Sound;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Collections;
@@ -53,7 +54,13 @@ namespace CharismaSDK
         ///  - To add speech, pass in a new speech config.
         ///  - To remove audio, set this to null.
         /// </summary>
-        public SpeechOptions SpeechOptions { get; set; }
+        public SpeechOptions SpeechOptions => _speechOptions;
+
+        /// <summary>
+        /// Assign a Speech recognition config.
+        ///  - used only when speechRecognition is enabled
+        /// </summary>
+        public SpeechRecognitionOptions SpeechRecognitionOptions => _speechRecognitionOptions;
 
         #endregion
 
@@ -63,6 +70,7 @@ namespace CharismaSDK
         public delegate void StartTypingDelegate(Events.StartTypingEvent message);
         public delegate void StopTypingDelegate(Events.StopTypingEvent message);
         public delegate void ConnectionStateChangeDelegate(ConnectionState connectionState);
+        public delegate void SpeechRecognitionResultDelegate(Events.SpeechRecognitionResult result);
         public delegate void PingSuccessDelegate();
         public delegate void PingFailureDelegate();
 
@@ -91,6 +99,11 @@ namespace CharismaSDK
         public event ConnectionStateChangeDelegate OnConnectionStateChange;
 
         /// <summary>
+        /// Called when valid speech is detected from the local audio Input.
+        /// </summary>
+        public event SpeechRecognitionResultDelegate OnSpeechRecognitionResult;
+
+        /// <summary>
         /// Called when a pong event is received successfully from the Playthrough host.
         /// </summary>
         public event PingSuccessDelegate OnPingSuccess;
@@ -108,10 +121,18 @@ namespace CharismaSDK
         private Dictionary<string, object> _roomOptions;
         private ColyseusRoom<object> _room;
 
+
+        // use default empty constructor for initialisation
+        // these setting should be in the playthrough anyway
+        private SpeechOptions _speechOptions = new SpeechOptions();
+        private SpeechRecognitionOptions _speechRecognitionOptions = new SpeechRecognitionOptions();
+
+        private Sound.Microphone _microphone;
+
+
         private ConnectionState _connectionState;
 
         private Action _onReadyCallback;
-
 
         private int _pingCount = 0;
         private int _reconnectionTryCount = 0;
@@ -127,11 +148,23 @@ namespace CharismaSDK
         /// Interaction with Charisma
         /// </summary>
         /// <param name="token">A valid play-though token.</param>
-        public Playthrough(string token, string playthroughUuid, SpeechOptions speechOptions = null)
+        public Playthrough(string token, string playthroughUuid, SpeechOptions speechOptions = default, SpeechRecognitionOptions speechRecognitionOptions = default)
         {
             Token = token;
             PlaythroughUuid = playthroughUuid;
-            SpeechOptions = speechOptions;
+
+            // keep initial empty constructor instances
+            // unless we receive new values
+            if (speechOptions != default)
+            {
+                _speechOptions = speechOptions;
+            }
+
+            if (speechRecognitionOptions != default)
+            {
+                _speechRecognitionOptions = speechRecognitionOptions;
+            }
+
             SetConnectionState(ConnectionState.Disconnected);
         }
 
@@ -199,7 +232,7 @@ namespace CharismaSDK
 
         public void SetSpeechConfig(SpeechOptions speechOptions)
         {
-            SpeechOptions = speechOptions;
+            _speechOptions = speechOptions;
         }
 
         /// <summary>
@@ -323,6 +356,44 @@ namespace CharismaSDK
             _room?.Send("play");
         }
 
+        public void StartSpeechRecognition(GameObject gameObject, int microphoneId = 0)
+        {
+            if (!IsConnected())
+            {
+                Logger.LogError("Socket not open. Connect before starting the interaction");
+                return;
+            };
+
+            if (_microphone == null)
+            {
+                _microphone = gameObject.TryGetComponent(out Sound.Microphone mic) ? mic : gameObject.AddComponent<Sound.Microphone>();
+            }
+
+            _microphone.Initialize(microphoneId, _speechRecognitionOptions.SampleRate);
+            _microphone.MicrophoneCallback += data => _room?.Send("speech-recognition-chunk", data);
+
+            var speechRecognitionOptions = new Dictionary<string, object>
+            {
+                ["service"] = _speechRecognitionOptions.Service,
+                ["sampleRate"] = _speechRecognitionOptions.SampleRate
+            };
+
+            if(_speechRecognitionOptions.LanguageCode != default)
+            {
+                speechRecognitionOptions.Add("languageCode", _speechRecognitionOptions.LanguageCode);
+            }
+
+            _room?.Send("speech-recognition-start", speechRecognitionOptions);
+            _microphone.StartListening();
+        }
+
+        public void StopSpeechRecognition()
+        {
+            _room?.Send("speech-recognition-stop");
+            _microphone.MicrophoneCallback = null;
+            _microphone.StopListening();
+        }
+
         #endregion
 
         #region Private functions
@@ -410,6 +481,12 @@ namespace CharismaSDK
             {
                 Logger.Log($"Received `stop-typing` event: {JsonConvert.SerializeObject(message)}");
                 OnStopTyping?.Invoke(message);
+            });
+
+            _room.OnMessage<Events.SpeechRecognitionResult>("speech-recognition-result", (message) =>
+            {
+                Logger.Log($"Received `speech-recognition-result` event: {JsonConvert.SerializeObject(message)}");
+                OnSpeechRecognitionResult?.Invoke(message);
             });
 
             _room.OnMessage<Events.ProblemEvent>("problem", (message) =>
