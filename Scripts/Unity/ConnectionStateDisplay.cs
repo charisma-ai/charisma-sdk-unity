@@ -23,6 +23,10 @@ public class ConnectionStateDisplay : MonoBehaviour
                 SetDisplayText("Connected");
                 SetDisplayColor(Color.green);
                 break;
+            case ConnectionState.Reconnecting:
+                SetDisplayText("Reconnecting...");
+                SetDisplayColor(Color.yellow);
+                break;
         }
     }
 
