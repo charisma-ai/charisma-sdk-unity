@@ -30,10 +30,6 @@ namespace CharismaSDK.Events
     [Serializable]
     public class SpeechRecognitionResult
     {
-        public float confidence;
-
-        public float durationInSeconds;
-
         public bool speechFinal;
 
         public bool isFinal;
