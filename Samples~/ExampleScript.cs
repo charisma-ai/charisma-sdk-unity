@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-
 using CharismaSDK;
 using CharismaSDK.Events;
+using CharismaSDK.Sound;
 
 /// <summary>
 /// This script demonstrates a simple interaction with Charisma
