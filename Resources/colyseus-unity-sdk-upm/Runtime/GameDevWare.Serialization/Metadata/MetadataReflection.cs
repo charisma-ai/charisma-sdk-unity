@@ -190,8 +190,6 @@ namespace GameDevWare.Serialization.Metadata
 
 			return true;
 		}
-		// THIS FUNCTION IS PATCHED COMPARED TO THE PUBLISHED LIBRARY
-		// TO SUPPORT WEBGL BUILDS
 		public static bool TryGetConstructor(Type type, out Func<object> ctrFn, out ConstructorInfo defaultConstructor)
 		{
 			if (type == null) throw new ArgumentNullException("type");
@@ -204,24 +202,25 @@ namespace GameDevWare.Serialization.Metadata
 
 			defaultConstructor = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(ctr => ctr.GetParameters().Length == 0);
 
+			if (AotRuntime && defaultConstructor != null) {
+				return true;
+			}
+
 			if (defaultConstructor == null)
 				return false;
 
-			if (!AotRuntime)
+			lock (ConstructorFunctions)
 			{
-				lock (ConstructorFunctions)
-				{
-					if (ConstructorFunctions.TryGetValue(type, out ctrFn))
-						return true;
+				if (ConstructorFunctions.TryGetValue(type, out ctrFn))
+					return true;
 
-					ctrFn = Expression.Lambda<Func<object>>(
-						Expression.Convert(
-							Expression.New(defaultConstructor),
-							typeof(object))
-						).Compile();
+				ctrFn = Expression.Lambda<Func<object>>(
+					Expression.Convert(
+						Expression.New(defaultConstructor),
+						typeof(object))
+					).Compile();
 
-					ConstructorFunctions.Add(type, ctrFn);
-				}
+				ConstructorFunctions.Add(type, ctrFn);
 			}
 
 			return true;

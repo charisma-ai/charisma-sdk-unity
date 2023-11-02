@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
+using System.Runtime.InteropServices;
 
 namespace CharismaSDK.Sound
 {
@@ -61,19 +62,35 @@ namespace CharismaSDK.Sound
             }
         }
 
+        [DllImport("__Internal")]
+        private static extern string SaveBufferAsBlob(byte[] buffer, int bufferSize);
+
         private static IEnumerator GenerateAudio(string encoding, byte[] bytes, Action<AudioClip> callback)
         {
+            if (bytes == null)
+            {
+                Debug.LogError("`bytes` provided to `GenerateAudio` was `null`, aborting.");
+                yield return null;
+            }
+
             AudioType audioType = GetAudioType(encoding);
 
-            var tempFile = Application.persistentDataPath + "/bytes.ogg";
+# if UNITY_WEBGL && !UNITY_EDITOR
+            // We're not allowed to use local file storage in browser contexts,
+            // so instead we save it as a blob.
+            string uri = SaveBufferAsBlob(bytes, bytes.Length);
+# else
+            string tempFile = Application.persistentDataPath + "/bytes." + encoding;
+            File.WriteAllBytes(tempFile, bytes);
+            string uri = "file://" + tempFile;
+# endif
 
-            if (bytes != null)
-                File.WriteAllBytes(tempFile, bytes);
-
-            var request = UnityWebRequestMultimedia.GetAudioClip("file://" + tempFile, audioType);
+            var request = UnityWebRequestMultimedia.GetAudioClip(uri, audioType);
             yield return request.SendWebRequest();
             while (!request.isDone)
+            {
                 yield return null;
+            }
 
             AudioClip clip = DownloadHandlerAudioClip.GetContent(request);
 
@@ -87,7 +104,9 @@ namespace CharismaSDK.Sound
             var request = UnityWebRequestMultimedia.GetAudioClip(url, audioType);
             yield return request.SendWebRequest();
             while (!request.isDone)
+            {
                 yield return null;
+            }
 
             AudioClip clip = DownloadHandlerAudioClip.GetContent(request);
 
