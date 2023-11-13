@@ -378,7 +378,7 @@ namespace CharismaSDK
                 ["sampleRate"] = _speechRecognitionOptions.SampleRate
             };
 
-            if(_speechRecognitionOptions.LanguageCode != default)
+            if (_speechRecognitionOptions.LanguageCode != default)
             {
                 speechRecognitionOptions.Add("languageCode", _speechRecognitionOptions.LanguageCode);
             }
@@ -428,7 +428,7 @@ namespace CharismaSDK
                 ["sdkInfo"] = new Dictionary<string, object>
                 {
                     ["sdkId"] = "unity",
-                    ["sdkVersion"] = "0.1.0",
+                    ["sdkVersion"] = "0.2.0",
                     ["protocolVersion"] = 1
                 }
             };

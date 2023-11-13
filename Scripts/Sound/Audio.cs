@@ -62,8 +62,10 @@ namespace CharismaSDK.Sound
             }
         }
 
+# if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
         private static extern string SaveBufferAsBlob(byte[] buffer, int bufferSize);
+# endif
 
         private static IEnumerator GenerateAudio(string encoding, byte[] bytes, Action<AudioClip> callback)
         {
