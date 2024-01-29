@@ -48,7 +48,7 @@ An `apiKey` can be provided to play an unpublished version of your story that is
 
 #### StartGraphReferenceId
 
-If you are referencing a game story you can use the `StartGraphReferenceId` to reference the scene you want to start. The `StartGraphReferenceId` is the same across the draft and published versions of your story. To find the `StartGraphReferenceId` of the particular graph you want to start, go to your story in the Charisma platform. In the sidebar click on the three dots next to the subplot's name. Then click 'edit details...' and copy (or change) the ID.
+If you are referencing a pro story you can use the `StartGraphReferenceId` to reference the scene you want to start. The `StartGraphReferenceId` is the same across the draft and published versions of your story. To find the `StartGraphReferenceId` of the particular graph you want to start, go to your story in the Charisma platform. In the sidebar click on the three dots next to the subplot's name. Then click 'edit details...' and copy (or change) the ID.
 
 #### Speech Options
 
