@@ -2,6 +2,9 @@ using CharismaSDK.Sound;
 
 namespace CharismaSDK.Events
 {
+    /// <summary>
+    /// Root client event abstraction that encompasses common values for all inherited ClientEvents
+    /// </summary>
     public abstract class ClientEvent
     {
         public string conversationUuid;
@@ -15,7 +18,7 @@ namespace CharismaSDK.Events
     }
 
     /// <summary>
-    /// Options with which to start the interaction with Charisma.
+    /// Message to start a Charisma playthrough
     /// </summary>
     public class StartEvent : ClientEvent
     {
@@ -23,25 +26,28 @@ namespace CharismaSDK.Events
         public string startGraphReferenceId = null;
 
         /// <summary>
-        /// Player response to Charisma.
+        /// Message to start a Charisma playthrough
         /// </summary>
         /// <param name="conversationUuid">Id of the conversation to send the reply to.</param>
         /// <param name="sceneIndex">Index of scene to start the playthrough from</param>
         /// <param name="speechConfig">Changes the speech settings of the interaction.- Don't pass unless you want to change settings.</param>
         /// /// <param name="startGraphReferenceId">Graph sublot to start the playthrough from</param>
-        public StartEvent(string conversationUuid, SpeechOptions speechConfig = null,  int? sceneIndex = null, string startGraphReferenceId = null) : base(conversationUuid, speechConfig)
+        public StartEvent(string conversationUuid, int? sceneIndex = null, string startGraphReferenceId = null, SpeechOptions speechConfig = null) : base(conversationUuid, speechConfig)
         {
             this.sceneIndex = sceneIndex;
             this.startGraphReferenceId = startGraphReferenceId;
         }
     }
 
+    /// <summary>
+    /// Message for player responses to Charisma
+    /// </summary>
     public class ReplyEvent : ClientEvent
     {
         public string text;
 
         /// <summary>
-        /// Player response to Charisma.
+        /// Message for player responses to Charisma
         /// </summary>
         /// <param name="conversationUuid">Id of the conversation to send the reply to.</param>
         /// <param name="text">Message to send</param>
@@ -52,20 +58,31 @@ namespace CharismaSDK.Events
         }
     }
 
+    /// <summary>
+    /// Message for player taps to continue a conversation
+    /// </summary>
     public class TapEvent : ClientEvent
     {
+        /// <summary>
+        /// Message for player taps to continue a conversation
+        /// </summary>
+        /// <param name="conversationUuid">Id of the conversation to send the tap to.</param>
+        /// <param name="speechConfig">Changes the speech settings of the interaction.- Don't pass unless you want to change settings.</param>
         public TapEvent(string conversationUuid, SpeechOptions speechConfig = null) : base(conversationUuid, speechConfig)
         {
         }
     }
 
+    /// <summary>
+    /// Message to resume a Charisma playthrough
+    /// </summary>
     public class ResumeEvent : ClientEvent
     {
         /// <summary>
-        /// Options with which to resume a playthrough in Charisma.
+        /// Message to resume a Charisma playthrough
         /// </summary>
         /// <param name="conversationUuid">Id of the conversation to resume.</param>
-        /// <param name="speechConfig">To use speech, pass speech options.</param>
+        /// <param name="speechConfig">Changes the speech settings of the interaction. Don't pass unless you want to change settings.</param>
         public ResumeEvent(string conversationUuid, SpeechOptions speechConfig = null) : base(conversationUuid, speechConfig)
         {
         }
@@ -80,8 +97,7 @@ namespace CharismaSDK.Events
         /// </summary>
         /// <param name="conversationUuid">Id of the conversation to send the reply to.</param>
         /// <param name="action">The action to send</param>
-        /// <param name="speechConfig">Changes the speech settings of the interaction.
-        ///  - Don't pass unless you want to change settings.'</param>
+        /// <param name="speechConfig">Changes the speech settings of the interaction. Don't pass unless you want to change settings.</param>
         public ActionEvent(string conversationUuid, string action, SpeechOptions speechConfig = null) : base(conversationUuid, speechConfig)
         {
             this.action = action;

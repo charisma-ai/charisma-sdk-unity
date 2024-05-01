@@ -129,7 +129,6 @@ namespace CharismaSDK
 
         private Sound.Microphone _microphone;
 
-
         private ConnectionState _connectionState;
 
         private Action _onReadyCallback;
@@ -251,7 +250,7 @@ namespace CharismaSDK
                 return;
             };
 
-            var startEvent = new Events.StartEvent(conversationUuid, SpeechOptions, sceneIndex, startGraphReferenceId);
+            var startEvent = new Events.StartEvent(conversationUuid, sceneIndex, startGraphReferenceId, SpeechOptions);
 
             Logger.Log($"Sending `start` event: {JsonConvert.SerializeObject(startEvent)}");
             _room?.Send("start", startEvent);
@@ -504,7 +503,7 @@ namespace CharismaSDK
             _room.OnLeave += (code) =>
             {
                 Logger.Log($"Connection closed. Attempting to reconnect to Playthrough.");
-                MainThreadConsumer.Instance.Consume(TryToReconnect());
+                MainThreadDispatcher.Instance.Consume(TryToReconnect());
             };
         }
 
@@ -537,7 +536,7 @@ namespace CharismaSDK
             Logger.Log("Trying to reconnect.");
             SetConnectionState(ConnectionState.Reconnecting);
 
-            MainThreadConsumer.Instance.Consume(Reconnect());
+            MainThreadDispatcher.Instance.Consume(Reconnect());
         }
 
         private bool IsReconnecting()
@@ -638,7 +637,7 @@ namespace CharismaSDK
                 SetConnectionState(ConnectionState.Disconnected);
 
                 OnPingFailure?.Invoke();
-                MainThreadConsumer.Instance.Consume(TryToReconnect());
+                MainThreadDispatcher.Instance.Consume(TryToReconnect());
                 return;
             }
 
