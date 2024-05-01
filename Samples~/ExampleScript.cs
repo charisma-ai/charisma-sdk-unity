@@ -15,8 +15,9 @@ public class ExampleScript : MonoBehaviour
     public int storyId;
     public int storyVersion;
     public string apiKey;
+    public string startGraphReferenceId;
     [Min(1)] public int startFromScene;
-
+    
     public bool useSpeech;
     public SpeechOptions speechOptions = new SpeechOptions();
 
@@ -69,6 +70,7 @@ public class ExampleScript : MonoBehaviour
 
                     // In the start function, we pass the scene we want to start from, the conversationId we cached earlier, and the speech options from the inspector. 
                     _charisma.Start(_conversationUuid, startFromScene);
+                    _charisma.Start(_conversationUuid, startGraphReferenceId: startGraphReferenceId);
                 });
 
                 // We can now subscribe to message events from charisma.
