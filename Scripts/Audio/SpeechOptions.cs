@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace CharismaSDK.Sound
+namespace CharismaSDK.Audio
 {
     [Serializable]
     public class SpeechOptions

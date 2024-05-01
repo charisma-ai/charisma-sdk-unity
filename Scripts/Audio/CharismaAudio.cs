@@ -6,9 +6,9 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Runtime.InteropServices;
 
-namespace CharismaSDK.Sound
+namespace CharismaSDK.Audio
 {
-    public class Audio
+    public class CharismaAudio
     {
         #region Static Methods
 

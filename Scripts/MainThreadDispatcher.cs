@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using DefaultNamespace;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -18,8 +16,8 @@ namespace CharismaSDK
                 if (_instance == null)
                 {
                     _instance = new MainThreadDispatcher();
-                    var coroutineObject = Object.Instantiate(new GameObject("ExternalCoroutineComponent"));
-                    _monoComponent = coroutineObject.AddComponent<MainThreadDispatcherMonoComponent>();
+                    var monoObject = Object.Instantiate(new GameObject("ExternalCoroutineComponent"));
+                    _monoComponent = monoObject.AddComponent<MainThreadDispatcherMonoComponent>();
                 }
 
                 return _instance;

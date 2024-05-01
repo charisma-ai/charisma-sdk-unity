@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace DefaultNamespace
+namespace CharismaSDK
 {
     /// <summary>
     /// Coroutines run on this object when called from external scripts through

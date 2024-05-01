@@ -2,7 +2,7 @@ using System;
 using Newtonsoft.Json;
 using UnityEngine;
 using Colyseus;
-using CharismaSDK.Sound;
+using CharismaSDK.Audio;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Collections;
@@ -127,7 +127,7 @@ namespace CharismaSDK
         private SpeechOptions _speechOptions = new SpeechOptions();
         private SpeechRecognitionOptions _speechRecognitionOptions = new SpeechRecognitionOptions();
 
-        private Sound.Microphone _microphone;
+        private Audio.Microphone _microphone;
 
         private ConnectionState _connectionState;
 
@@ -365,7 +365,7 @@ namespace CharismaSDK
 
             if (_microphone == null)
             {
-                _microphone = gameObject.TryGetComponent(out Sound.Microphone mic) ? mic : gameObject.AddComponent<Sound.Microphone>();
+                _microphone = gameObject.TryGetComponent(out Audio.Microphone mic) ? mic : gameObject.AddComponent<Audio.Microphone>();
             }
 
             _microphone.Initialize(microphoneId, _speechRecognitionOptions.SampleRate);

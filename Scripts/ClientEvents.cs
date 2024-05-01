@@ -1,4 +1,4 @@
-using CharismaSDK.Sound;
+using CharismaSDK.Audio;
 
 namespace CharismaSDK.Events
 {
