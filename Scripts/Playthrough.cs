@@ -251,7 +251,7 @@ namespace CharismaSDK
                 return;
             };
 
-            var startEvent = new Events.StartEvent(conversationUuid, sceneIndex, startGraphReferenceId, SpeechOptions);
+            var startEvent = new Events.StartEvent(conversationUuid, SpeechOptions, sceneIndex, startGraphReferenceId);
 
             Logger.Log($"Sending `start` event: {JsonConvert.SerializeObject(startEvent)}");
             _room?.Send("start", startEvent);
@@ -504,7 +504,7 @@ namespace CharismaSDK
             _room.OnLeave += (code) =>
             {
                 Logger.Log($"Connection closed. Attempting to reconnect to Playthrough.");
-                MainThreadConsumer.Instance?.StartCoroutine(TryToReconnect());
+                MainThreadConsumer.Instance.Consume(TryToReconnect());
             };
         }
 
@@ -537,7 +537,7 @@ namespace CharismaSDK
             Logger.Log("Trying to reconnect.");
             SetConnectionState(ConnectionState.Reconnecting);
 
-            MainThreadConsumer.Instance.StartCoroutine(Reconnect());
+            MainThreadConsumer.Instance.Consume(Reconnect());
         }
 
         private bool IsReconnecting()
@@ -638,7 +638,7 @@ namespace CharismaSDK
                 SetConnectionState(ConnectionState.Disconnected);
 
                 OnPingFailure?.Invoke();
-                MainThreadConsumer.Instance?.StartCoroutine(TryToReconnect());
+                MainThreadConsumer.Instance.Consume(TryToReconnect());
                 return;
             }
 

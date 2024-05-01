@@ -8,7 +8,8 @@ namespace CharismaSDK
     public class MainThreadConsumer : MonoBehaviour
     {
         public static MainThreadConsumer Instance { get; private set; }
-        private static readonly Queue<Action> ExecuteOnMainThread = new Queue<Action>();
+        private static readonly Queue<Action> ExecuteOnMainThread = new();
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -18,7 +19,6 @@ namespace CharismaSDK
                 Instance = this;
                 DontDestroyOnLoad(this);
             }
-
         }
 
         private void Update()
