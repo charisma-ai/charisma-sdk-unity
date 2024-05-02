@@ -16,17 +16,29 @@ Open Unity's Package Manager by heading to `Window -> Package Manager`. Click th
 
 Unity will download the Charisma package into your project as a package. This includes an example scene and script which can be found by expanding the "Samples" drop-down when the package is highlighted in the Package Manager, and importing the "Example".
 
-## Usage
+## Plug-N-Play
+Once the SDK is imported, you can also optionally import the [Plug-N-Play](https://github.com/charisma-ai/unity-plug-n-play) package before continuing with this guide. 
 
-To create playthrough tokens, you’ll first need to find out your story ID, and optionally an API key and version of the story you want to play.
+This package contains more in-depth examples of how Charisma can be used to power your stories!
+
+## Usage
+In order to connect to a Charisma story, you will need find the 'Playthrough' configuration object. This object can be found in the example scenes by default.
+
+> For the SDK example scene - this object will be called 'ExampleScript'
+> 
+> For the Plug-N-Play example scene - this object will be called 'PlaythroughInstance'
+
+You will need to provide various tokens in order to connect to you Charisma story:
+- StoryID
+- StoryVersion
+- ApiKey
+- StartGraphReferenceID
 
 #### Story Id
 
 The `StoryId` is the unique ID of the story that you want to play. To find this, navigate to your story on the Charisma website, and copy the ID number after `/stories` in the URL.
 
 ![StoryId](https://i.ibb.co/TcxRM8J/story-id.png)
-
-Pass this in the `CharismaTokenSettings` object.
 
 #### Story Version
 
@@ -37,8 +49,6 @@ This is the version of the story you want to play.
 - To play a specific, published, version of your story, set the number to that particular version.
 
 - To play the draft version, set the number to -1. To do this, you must also supply your API key.
-
-Pass this in the `CharismaTokenSettings` object.
 
 #### API key
 
