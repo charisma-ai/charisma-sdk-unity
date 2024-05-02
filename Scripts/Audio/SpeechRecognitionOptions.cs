@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace CharismaSDK.Sound
+namespace CharismaSDK.Audio
 {
     [Serializable]
     public class SpeechRecognitionOptions

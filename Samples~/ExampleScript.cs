@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using CharismaSDK;
 using CharismaSDK.Events;
-using CharismaSDK.Sound;
+using CharismaSDK.Audio;
 
 /// <summary>
 /// This script demonstrates a simple interaction with Charisma
@@ -15,8 +15,9 @@ public class ExampleScript : MonoBehaviour
     public int storyId;
     public int storyVersion;
     public string apiKey;
+    public string startGraphReferenceId;
     [Min(1)] public int startFromScene;
-
+    
     public bool useSpeech;
     public SpeechOptions speechOptions = new SpeechOptions();
 
@@ -69,6 +70,7 @@ public class ExampleScript : MonoBehaviour
 
                     // In the start function, we pass the scene we want to start from, the conversationId we cached earlier, and the speech options from the inspector. 
                     _charisma.Start(_conversationUuid, startFromScene);
+                    _charisma.Start(_conversationUuid, startGraphReferenceId: startGraphReferenceId);
                 });
 
                 // We can now subscribe to message events from charisma.
@@ -90,7 +92,7 @@ public class ExampleScript : MonoBehaviour
                     if (useSpeech && message.message.speech.audio.Length > 0)
                     {
                         // Once we have received a message character message, we might want to play the audio. To do this we run the GetClip method and wait for the callback which contains our audio clip, then pass it to the audio player.
-                        Audio.GetAudioClip(message.message.speech.encoding, message.message.speech.audio, onAudioGenerated: (clip =>
+                        CharismaAudio.GetAudioClip(message.message.speech.encoding, message.message.speech.audio, onAudioGenerated: (clip =>
                         {
                             audioSource.clip = clip;
                             audioSource.Play();

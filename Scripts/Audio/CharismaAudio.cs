@@ -6,9 +6,9 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Runtime.InteropServices;
 
-namespace CharismaSDK.Sound
+namespace CharismaSDK.Audio
 {
-    public class Audio
+    public class CharismaAudio
     {
         #region Static Methods
 
@@ -27,7 +27,7 @@ namespace CharismaSDK.Sound
                 throw new NullReferenceException("There was no audio data to generate from. Check your audio settings.");
             }
 
-            MainThreadConsumer.Instance.Consume(GenerateAudio(encoding, bytes, onAudioGenerated));
+            MainThreadDispatcher.Instance.Consume(GenerateAudio(encoding, bytes, onAudioGenerated));
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace CharismaSDK.Sound
         /// <exception cref="NotImplementedException"></exception>
         public static void GetAudioClip(string encoding, string url, Action<AudioClip> onAudioGenerated)
         {
-            MainThreadConsumer.Instance.Consume(GenerateAudio(encoding, url, onAudioGenerated));
+            MainThreadDispatcher.Instance.Consume(GenerateAudio(encoding, url, onAudioGenerated));
         }
 
         private static AudioType GetAudioType(string encoding)
