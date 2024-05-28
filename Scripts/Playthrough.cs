@@ -121,7 +121,6 @@ namespace CharismaSDK
         private Dictionary<string, object> _roomOptions;
         private ColyseusRoom<object> _room;
 
-
         // use default empty constructor for initialisation
         // these setting should be in the playthrough anyway
         private SpeechOptions _speechOptions = new SpeechOptions();

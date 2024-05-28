@@ -406,10 +406,15 @@ namespace CharismaSDK
         #endregion
     }
 
-    public class CreatePlaythroughTokenParams
+    public struct CreatePlaythroughTokenParams
     {
+        [Tooltip("Unique ID of the story that you want to play.")]
         public int StoryId { get; }
+
+        [Tooltip("The version of the story you want to play. If set to 0, will load the latest published version. If set to -1, will load the current draft version. The draft also requires the API key to be set")]
         public int StoryVersion { get; }
+
+        [Tooltip("Used for loading the draft version of the story.")]
         public string ApiKey { get; }
 
         /// <summary>
@@ -467,7 +472,7 @@ namespace CharismaSDK
         public MessageEvent[] Messages { get; }
 
         [JsonConstructor]
-        public GetMessageHistoryResponse(MessageEvent[] messages) 
+        public GetMessageHistoryResponse(MessageEvent[] messages)
         {
             Messages = messages;
         }
