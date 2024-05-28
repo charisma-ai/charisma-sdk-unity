@@ -86,7 +86,7 @@ public abstract class PlaythroughInstanceBase : MonoBehaviour
             }
 
             // In the start function, we pass the conversationId we cached earlier.
-            _playthrough.Start(_conversationUuid, startGraphReferenceId: _startGraphReferenceId);
+            _playthrough.Start(_conversationUuid, _startFromScene, _startGraphReferenceId);
         });
     }
 
