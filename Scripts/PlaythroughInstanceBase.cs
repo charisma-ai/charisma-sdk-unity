@@ -3,23 +3,29 @@ using CharismaSDK;
 using CharismaSDK.Audio;
 using CharismaSDK.Events;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Logger = CharismaSDK.Logger;
 
 public abstract class PlaythroughInstanceBase : MonoBehaviour
 {
     [Header("Charisma")]
     [SerializeField]
-    [Tooltip("Playthrough parameters used to connect to Charisma backend and start a playthrough")]
-    protected CreatePlaythroughTokenParams _connectionTokenParams;
+    [Tooltip("Unique ID of the story that you want to play.")]
+    protected int _storyId;
+
+    [SerializeField]
+    [Tooltip("The version of the story you want to play. If set to 0, will load the latest published version. If set to -1, will load the current draft version. The draft also requires the API key to be set")]
+    protected int _storyVersion;
+
+    [SerializeField]
+    [Tooltip("Used for loading the draft version of the story.")]
+    protected string _apiKey;
 
     [SerializeField]
     [Tooltip("ID of the graph to start the playthrough from.")]
     protected string _startGraphReferenceId;
 
-    [SerializeField]
-    [Tooltip("Index of the scene to start the playthrough from.")] [Min(1)]
-    protected int _startFromScene;
-
+    [Header("Settings")]
     [SerializeField]
     [Tooltip("Configuration node of the Speech output.")]
     protected SpeechOptions _speechOptions;
@@ -40,7 +46,7 @@ public abstract class PlaythroughInstanceBase : MonoBehaviour
     public void LoadPlaythrough()
     {
         // We use these settings to create a play-through token.
-        StartCoroutine(CharismaAPI.CreatePlaythroughToken(_connectionTokenParams, callback: (tokenResponse) =>
+        StartCoroutine(CharismaAPI.CreatePlaythroughToken(new CreatePlaythroughTokenParams(_storyId,_storyVersion, _apiKey), callback: (tokenResponse) =>
         {
             // Once we receive the callback with our token, we can create a new conversation.
             StartCoroutine(CharismaAPI.CreateConversation(tokenResponse.Token, callback: conversationUuid =>
@@ -65,7 +71,7 @@ public abstract class PlaythroughInstanceBase : MonoBehaviour
     /// This will begin the relevant active substory, and start sending messages back to the local Unity session.
     /// This message callback can be set via the SetOnMessageCallback function.
     /// </summary>
-    public void StartPlaythrough()
+    protected void StartPlaythrough()
     {
         if (!IsPlaythroughLoaded())
         {
@@ -76,17 +82,21 @@ public abstract class PlaythroughInstanceBase : MonoBehaviour
         // We can now connect to Charisma. Once we receive the ready callback, we can start our play-through.
         _playthrough.Connect(() =>
         {
-            Logger.Log("Playthrough ready to connect!");
+            Logger.Log("Connecting to playthrough.");
 
             // We can now subscribe to message events from charisma.
-            if (_onMessageCallback != default)
+            if (_onMessageCallback == default)
             {
+                Logger.Log("Subscribed to messages.");
+
                 // We can now subscribe to message events from charisma.
                 _playthrough.OnMessage += OnMessageReceived;
             }
 
+            Logger.Log("Starting playthrough.");
+
             // In the start function, we pass the conversationId we cached earlier.
-            _playthrough.Start(_conversationUuid, _startFromScene, _startGraphReferenceId);
+            _playthrough.Start(_conversationUuid, null , _startGraphReferenceId);
         });
     }
 

@@ -406,15 +406,14 @@ namespace CharismaSDK
         #endregion
     }
 
-    public struct CreatePlaythroughTokenParams
+    /// <summary>
+    /// Parameters used for connecting with the Charisma backend
+    /// </summary>
+    [Serializable]
+    public class CreatePlaythroughTokenParams
     {
-        [Tooltip("Unique ID of the story that you want to play.")]
         public int StoryId { get; }
-
-        [Tooltip("The version of the story you want to play. If set to 0, will load the latest published version. If set to -1, will load the current draft version. The draft also requires the API key to be set")]
         public int StoryVersion { get; }
-
-        [Tooltip("Used for loading the draft version of the story.")]
         public string ApiKey { get; }
 
         /// <summary>

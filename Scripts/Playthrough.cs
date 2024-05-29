@@ -237,11 +237,7 @@ namespace CharismaSDK
         /// Starts the story. Can be from a particular scene or subplot, or the beginning of the story, depending on the value of the `startOptions` parameter.
         /// </summary>
         /// <param name="startOptions">Options to send with the `start` event.</param>
-        public void Start(
-            string conversationUuid,
-            int? sceneIndex = null,
-            string startGraphReferenceId = null
-        )
+        public void Start(string conversationUuid, int? sceneIndex = null, string startGraphReferenceId = null)
         {
             if (!IsConnected())
             {

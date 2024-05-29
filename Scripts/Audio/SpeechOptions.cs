@@ -43,8 +43,8 @@ namespace CharismaSDK.Audio
         /// <param name="encoding">What encoding to use</param>
         public SpeechOptions(AudioOutput output, List<Encoding> encoding)
         {
-            this._audioOutput = output;
-            this._encoding = encoding;
+            _audioOutput = output;
+            _encoding = encoding;
         }
 
         public List<string> encoding
