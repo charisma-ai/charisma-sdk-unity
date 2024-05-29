@@ -200,6 +200,7 @@ namespace CharismaSDK
             if (!HasBeenDisconnected())
             {
                 Logger.Log("Playthrough is already disconnected. Exiting early.");
+                SetConnectionState(ConnectionState.Disconnected);
                 return;
             }
 
