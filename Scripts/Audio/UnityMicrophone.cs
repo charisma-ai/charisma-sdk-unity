@@ -3,23 +3,9 @@ using UnityEngine;
 
 namespace CharismaSDK.Audio
 {
-
-    public class Microphone : MonoBehaviour
+#if !UNITY_WEBGL
+    public class UnityMicrophone : MicrophoneBase
     {
-        public delegate void MicCallbackDelegate(byte[] buf);
-
-        public MicCallbackDelegate MicrophoneCallback;
-
-        private const double NORMALIZED_FLOAT_TO_16BIT_CONVERSIONFACTOR = 0x7FFF + 0.4999999999999999;
-
-        private string _micString;
-        private AudioClip _clip;
-        private int _readHead = 0;
-
-        private int _microphoneId;
-
-        private int _sampleRate;
-
         void FixedUpdate()
         {
             if (_clip != null)
@@ -28,17 +14,11 @@ namespace CharismaSDK.Audio
             }
         }
 
-        internal void Initialize(int microphoneId, int sampleRate = 16000)
+        private void ReadMicrophoneAudio()
         {
-            _microphoneId = microphoneId;
-            _sampleRate = sampleRate;
-        }
+            int writeHead = Microphone.GetPosition(_micString);
 
-        void ReadMicrophoneAudio()
-        {
-            int writeHead = UnityEngine.Microphone.GetPosition(_micString);
-
-            if (_readHead == writeHead || !UnityEngine.Microphone.IsRecording(_micString))
+            if (_readHead == writeHead || !Microphone.IsRecording(_micString))
             {
                 return;
             }
@@ -74,7 +54,7 @@ namespace CharismaSDK.Audio
             }
         }
 
-        public void StartListening()
+        public override void StartListening()
         {
             if (UnityEngine.Microphone.devices.Length == 0)
             {
@@ -83,11 +63,11 @@ namespace CharismaSDK.Audio
             }
 
             _readHead = 0;
-            _micString = UnityEngine.Microphone.devices[_microphoneId];
-            _clip = UnityEngine.Microphone.Start(_micString, true, 10, _sampleRate);
+            _micString = Microphone.devices[_microphoneId];
+            _clip = Microphone.Start(_micString, true, 10, _sampleRate);
         }
 
-        public void StopListening()
+        public override void StopListening()
         {
             if (!_clip)
             {
@@ -95,9 +75,10 @@ namespace CharismaSDK.Audio
                 return;
             }
 
-            UnityEngine.Microphone.End(_micString);
+            Microphone.End(_micString);
             _micString = null;
             _clip = null;
         }
     }
+#endif
 }
