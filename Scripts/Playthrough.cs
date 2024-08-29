@@ -197,7 +197,7 @@ namespace CharismaSDK
         // Disconnect from the current interaction.
         public void Disconnect()
         {
-            if (!HasBeenDisconnected())
+            if (HasBeenDisconnected())
             {
                 Logger.Log("Playthrough is already disconnected. Exiting early.");
                 SetConnectionState(ConnectionState.Disconnected);
@@ -498,7 +498,15 @@ namespace CharismaSDK
 
             _room.OnLeave += (code) =>
             {
-                Logger.Log($"Connection closed. Attempting to reconnect to Playthrough.");
+                Logger.Log($"Connection closed.");
+
+                if (_calledByDisconnect)
+                {
+                    return;
+                }
+
+                Logger.Log($"Attempting to reconnect to Playthrough.");
+
                 MainThreadDispatcher.Instance.Consume(TryToReconnect());
             };
         }
