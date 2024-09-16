@@ -111,4 +111,9 @@ public abstract class PlaythroughInstanceBase : MonoBehaviour
     {
         return _playthrough != default;
     }
+
+    private void OnApplicationQuit()
+    {
+        MainThreadDispatcher.Instance.Dispose();
+    }
 }

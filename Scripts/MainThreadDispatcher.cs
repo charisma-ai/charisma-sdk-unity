@@ -5,7 +5,7 @@ using Object = UnityEngine.Object;
 
 namespace CharismaSDK
 {
-    public class MainThreadDispatcher
+    public class MainThreadDispatcher : IDisposable
     {
         private static MainThreadDispatcher _instance;
         private static MainThreadDispatcherMonoComponent _monoComponent;
@@ -32,6 +32,12 @@ namespace CharismaSDK
         public void Consume(Action action)
         {
             _monoComponent.EnqueueMainThreadAction(action);
+        }
+
+        public void Dispose()
+        {
+            Object.Destroy(_monoComponent);
+            _instance = null;
         }
     }
 }
