@@ -16,7 +16,6 @@ namespace CharismaSDK.Audio
 
         public string Service
         {
-
             get
             {
                 switch (_service)

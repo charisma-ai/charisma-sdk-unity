@@ -27,8 +27,12 @@ public abstract class PlaythroughInstanceBase : MonoBehaviour
 
     [Header("Settings")]
     [SerializeField]
-    [Tooltip("Configuration node of the Speech output.")]
+    [Tooltip("Configuration of the Speech output.")]
     protected SpeechOptions _speechOptions;
+
+    [SerializeField]
+    [Tooltip("Configuration of the speech-to-text")]
+    protected SpeechRecognitionOptions _speechRecognitionOptions;
 
     [SerializeField]
     [Tooltip("Activate internal Charisma-specific logging.")]
@@ -56,9 +60,10 @@ public abstract class PlaythroughInstanceBase : MonoBehaviour
 
                 // We can now create a new charisma object and pass it our token.
                 _playthrough = new Playthrough(
-                    token: tokenResponse.Token,
-                    playthroughUuid: tokenResponse.PlaythroughUuid,
-                    _speechOptions
+                    tokenResponse.Token,
+                    tokenResponse.PlaythroughUuid,
+                    _speechOptions,
+                    _speechRecognitionOptions
                 );
 
                 OnPlaythroughLoaded(tokenResponse, conversationUuid);
