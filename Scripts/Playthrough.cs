@@ -126,7 +126,7 @@ namespace CharismaSDK
         private SpeechOptions _speechOptions = new SpeechOptions();
         private SpeechRecognitionOptions _speechRecognitionOptions = new SpeechRecognitionOptions();
 
-        private Audio.UnityMicrophone _microphone;
+        private MicrophoneBase _microphone;
 
         private ConnectionState _connectionState;
 
@@ -361,7 +361,7 @@ namespace CharismaSDK
 
             if (_microphone == null)
             {
-                _microphone = gameObject.TryGetComponent(out UnityMicrophone mic) ? mic : gameObject.AddComponent<UnityMicrophone>();
+                _microphone = gameObject.TryGetComponent(out MicrophoneBase mic) ? mic : gameObject.AddComponent<MicrophoneBase>();
             }
 
             _microphone.Initialize(microphoneId, _speechRecognitionOptions.SampleRate);
