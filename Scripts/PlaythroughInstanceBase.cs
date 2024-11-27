@@ -90,19 +90,32 @@ public abstract class PlaythroughInstanceBase : MonoBehaviour
             Logger.Log("Connecting to playthrough.");
 
             // We can now subscribe to message events from charisma.
-            if (_onMessageCallback == default)
-            {
-                Logger.Log("Subscribed to messages.");
+            Logger.Log("Subscribed to messages.");
 
-                // We can now subscribe to message events from charisma.
-                _playthrough.OnMessage += OnMessageReceived;
-            }
+            // We can now subscribe to message events from charisma.
+            _playthrough.OnMessage += OnMessageReceived;
 
             Logger.Log("Starting playthrough.");
 
             // In the start function, we pass the conversationId we cached earlier.
             _playthrough.Start(_conversationUuid, null , _startGraphReferenceId);
         });
+    }
+
+    /// <summary>
+    /// Sends an action to the current playthrough.
+    /// </summary>
+    /// <param name="reply"></param>
+    public void SetAction(string action)
+    {
+        if (!IsPlaythroughLoaded())
+        {
+            Logger.Log("Playthrough was not loaded. Please call LoadPlaythrough() first.");
+            return;
+        }
+
+        // Send an action to our current conversation.
+        _playthrough.Action(_conversationUuid, action);
     }
 
     protected abstract void OnPlaythroughLoaded(CreatePlaythroughTokenResponse tokenResponse, string conversationUuid);
