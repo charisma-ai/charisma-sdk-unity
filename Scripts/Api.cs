@@ -256,7 +256,7 @@ namespace CharismaSDK
         /// <param name="token">Provide the token of the play-through where the memory should be changed.</param>
         /// <param name="recallSaveValues">A collection of recall and save values. The key of the Dict acts as the recall value and value acts as the save.</param>
         /// <param name="callback">Called when the mood has successfully been set.</param>
-        public static IEnumerator SetMemory(string token, Dictionary<string, string> recallSaveValues, Action callback = null)
+        public static IEnumerator SetMemory(string token, Dictionary<string, object> recallSaveValues, Action callback = null)
         {
             var count = recallSaveValues.Count;
 
@@ -307,10 +307,10 @@ namespace CharismaSDK
         /// <param name="recallValue">The recall value of the memory.</param>
         /// <param name="saveValue">The new value of the memory.</param>
         /// <param name="callback">Called when the mood has successfully been set.</param>
-        public static IEnumerator SetMemory(string token, string recallValue, string saveValue, Action callback = null)
+        public static IEnumerator SetMemory(string token, string recallValue, object saveValue, Action callback = null)
         {
             yield return SetMemory(token,
-                new Dictionary<string, string>()
+                new Dictionary<string, object>()
                  {
                     { recallValue, saveValue }
                 }, callback);

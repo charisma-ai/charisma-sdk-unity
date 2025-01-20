@@ -105,7 +105,6 @@ public abstract class PlaythroughInstanceBase : MonoBehaviour
     /// <summary>
     /// Sends an action to the current playthrough.
     /// </summary>
-    /// <param name="reply"></param>
     public void SetAction(string action)
     {
         if (!IsPlaythroughLoaded())
@@ -116,6 +115,21 @@ public abstract class PlaythroughInstanceBase : MonoBehaviour
 
         // Send an action to our current conversation.
         _playthrough.Action(_conversationUuid, action);
+    }
+
+    /// <summary>
+    /// Sends a memory to the current playthrough
+    /// </summary>
+    public void SetMemory(string recallValue, object saveValue)
+    {
+        if (!IsPlaythroughLoaded())
+        {
+            Logger.Log("Playthrough was not loaded. Please call LoadPlaythrough() first.");
+            return;
+        }
+
+        // Send a memory to our current conversation.
+        StartCoroutine(CharismaAPI.SetMemory(_playthrough.Token, recallValue, saveValue));
     }
 
     protected abstract void OnPlaythroughLoaded(CreatePlaythroughTokenResponse tokenResponse, string conversationUuid);
