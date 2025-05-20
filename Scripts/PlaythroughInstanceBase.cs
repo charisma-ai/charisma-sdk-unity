@@ -132,6 +132,22 @@ public abstract class PlaythroughInstanceBase : MonoBehaviour
         StartCoroutine(CharismaAPI.SetMemory(_playthrough.Token, recallValue, saveValue));
     }
 
+    /// <summary>
+    /// Sets pause/play status for the current running playthrough on the backend.
+    /// Charisma graph will not continue to play until the playthrough is unpaused
+    /// </summary>
+    public void SetPause(bool isPaused)
+    {
+        if (isPaused)
+        {
+            _playthrough.Pause();
+        }
+        else
+        {
+            _playthrough.Play();
+        }
+    }
+
     protected abstract void OnPlaythroughLoaded(CreatePlaythroughTokenResponse tokenResponse, string conversationUuid);
 
     protected abstract void OnMessageReceived(MessageEvent message);
