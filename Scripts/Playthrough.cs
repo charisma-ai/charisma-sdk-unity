@@ -33,7 +33,7 @@ namespace CharismaSDK
         private const int MINIMUM_PINGS_TO_CONSIDER_FAILED = 3;
 
         // Reconnection constants
-        private const int MAXIMUM_RECONNECTION_ATTEMPTS = 60;
+        private const int MAXIMUM_RECONNECTION_ATTEMPTS = 500;
 
         #endregion
 
@@ -559,6 +559,7 @@ namespace CharismaSDK
 
                 if (_reconnectionTryCount <= MAXIMUM_RECONNECTION_ATTEMPTS)
                 {
+                    Debug.LogError($"TRYING TO RECONNECT - {_reconnectionTryCount}");
                     // Need to set the protocol to secure every time.
                     // Colyseus resets to non-secure after even one failed attempt
                     _client.Settings.useSecureProtocol = true;
@@ -566,11 +567,13 @@ namespace CharismaSDK
                     Task<ColyseusRoom<object>> reconnectionTask;
                     if (roomExpired)
                     {
+                        Debug.LogError("RECONNECTION TRY - JOIN OR CREATE");
                         // If the room has expired, attempt to create a new one.
                         reconnectionTask = _client.JoinOrCreate("chat", _roomOptions);
                     }
                     else
                     {
+                        Debug.LogError("RECONNECTION TRY - RECONNECT");
                         // Try just reconnecting otherwise.
                         reconnectionTask = _client.Reconnect(_room.Id, _room.SessionId);
                     }
@@ -579,6 +582,7 @@ namespace CharismaSDK
 
                     if (reconnectionTask.Status != TaskStatus.Faulted)
                     {
+                        Debug.LogError("RECONNECTION - STATUS SUCCESS");
                         room = reconnectionTask.Result;
 
                         // If the room is successfully generated and no error is catched
@@ -591,9 +595,10 @@ namespace CharismaSDK
                     }
                     else
                     {
+                        Debug.LogError("RECONNECTION - STATUS FAULT");
                         var exception = reconnectionTask.Exception;
 
-                        Logger.LogWarning($"Failed to reconnect - exception: {exception.Message}");
+                        Logger.LogError($"Failed to reconnect - exception: {exception.Message}");
 
                         // listen for "Room */ not found" error messages
                         // must re-create room as a result, as room has expired
@@ -603,6 +608,7 @@ namespace CharismaSDK
                             var indexOfNotFound = exception.Message.IndexOf("not found");
                             if (indexOfRoom != -1 && indexOfRoom < indexOfNotFound)
                             {
+                                Debug.LogError("RECONNECTION - ROOM EXPIRED");
                                 roomExpired = true;
                             }
                         }
@@ -617,7 +623,7 @@ namespace CharismaSDK
                 }
                 else
                 {
-                    Logger.Log("Reached reconnection attempt limit - disconnecting...");
+                    Logger.LogError("Reached reconnection attempt limit - disconnecting...");
                     SetConnectionState(ConnectionState.Disconnected);
                     break;
                 }
