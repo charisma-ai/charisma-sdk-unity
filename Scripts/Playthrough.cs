@@ -242,7 +242,7 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before starting the interaction");
+                Logger.LogError("START - Socket not open. Connect before starting the interaction");
                 return;
             };
 
@@ -260,7 +260,7 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before resuming the interaction");
+                Logger.LogError("RESUME - Socket not open. Connect before resuming the interaction");
                 return;
             };
 
@@ -278,7 +278,7 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before starting the interaction");
+                Logger.LogError("TAP - Socket not open. Connect before starting the interaction");
                 return;
             };
 
@@ -298,7 +298,7 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before starting the interaction");
+                Logger.LogError("REPLY - Socket not open. Connect before starting the interaction");
                 return;
             };
 
@@ -317,7 +317,7 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before starting the interaction");
+                Logger.LogError("ACTION - Socket not open. Connect before starting the interaction");
                 return;
             };
 
@@ -331,7 +331,7 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before starting the interaction");
+                Logger.LogError("PAUSE - Socket not open. Connect before starting the interaction");
                 return;
             };
 
@@ -343,7 +343,7 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before starting the interaction");
+                Logger.LogError("PLAY - Socket not open. Connect before starting the interaction");
                 return;
             };
 
@@ -355,7 +355,7 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before starting the interaction");
+                Logger.LogError("START SPEECH REC - Socket not open. Connect before starting the interaction");
                 return;
             };
 
@@ -384,6 +384,12 @@ namespace CharismaSDK
 
         public void StopSpeechRecognition()
         {
+            if (!IsConnected())
+            {
+                Logger.LogError("STOP SPEECH REC - Socket not open. Connect before starting the interaction");
+                return;
+            };
+
             _room?.Send("speech-recognition-stop");
             _microphone.MicrophoneCallback = null;
             _microphone.StopListening();
