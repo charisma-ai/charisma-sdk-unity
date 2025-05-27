@@ -168,6 +168,7 @@ namespace CharismaSDK
 
         ~Playthrough()
         {
+            Logger.LogError("Playthrough DESTRUCTOR CALLED");
             Disconnect();
         }
 
@@ -420,6 +421,7 @@ namespace CharismaSDK
 
         private async void CreateClientAndJoinRoom()
         {
+            Debug.LogError("Playthrough - CreateClientAndJoinRoom");
             _client = new ColyseusClient(BaseUrl);
 
             _roomOptions = new Dictionary<string, object>
@@ -445,11 +447,12 @@ namespace CharismaSDK
 
         private void AssignRoomCallbacks()
         {
+            Debug.LogError("Playthrough - AssignRoomCallbacks");
+
             _room.OnJoin += () =>
             {
                 Logger.Log("Successfully connected to playthrough");
             };
-
 
             _room.OnError += (code, message) =>
             {
@@ -531,8 +534,11 @@ namespace CharismaSDK
 
         private IEnumerator TryToReconnect()
         {
+            Logger.LogError("Trying to reconnect.");
+
             if (_calledByDisconnect)
             {
+                Logger.LogError("Trying to reconnect FAIL - called by disconnect");
                 SetConnectionState(ConnectionState.Disconnected);
                 yield break;
             }
@@ -540,10 +546,10 @@ namespace CharismaSDK
             // cannot allow multiple reconnection coroutines to run concurrently
             if (IsReconnecting())
             {
+                Logger.LogError("Trying to reconnect FAIL - already reconnecting");
                 yield break;
             }
 
-            Logger.Log("Trying to reconnect.");
             SetConnectionState(ConnectionState.Reconnecting);
 
             MainThreadDispatcher.Instance.Consume(Reconnect());
@@ -565,7 +571,7 @@ namespace CharismaSDK
 
                 if (_reconnectionTryCount <= MAXIMUM_RECONNECTION_ATTEMPTS)
                 {
-                    Debug.LogError($"TRYING TO RECONNECT - {_reconnectionTryCount}");
+                    Debug.LogError($"RECONNECTION TRY - {_reconnectionTryCount}");
                     // Need to set the protocol to secure every time.
                     // Colyseus resets to non-secure after even one failed attempt
                     _client.Settings.useSecureProtocol = true;

@@ -162,6 +162,17 @@ public abstract class PlaythroughInstanceBase : MonoBehaviour
 
     private void OnApplicationQuit()
     {
+        Debug.LogError($"PlaythroughInstance OnAppQuit");
         MainThreadDispatcher.Instance.Dispose();
+    }
+
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        Debug.LogError($"PlaythroughInstance OnAppFocus- {hasFocus}");
+    }
+
+    private void OnApplicationPause(bool pauseStatus)
+    {
+        Debug.LogError($"PlaythroughInstance OnAppPause- {pauseStatus}");
     }
 }
