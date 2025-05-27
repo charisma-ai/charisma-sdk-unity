@@ -30,7 +30,7 @@ namespace CharismaSDK
 
         // Ping constants
         private const float TIME_BETWEEN_PINGS = 2.0f;
-        private const int MINIMUM_PINGS_TO_CONSIDER_FAILED = 3;
+        private const int MINIMUM_PINGS_TO_CONSIDER_FAILED = 10;
 
         // Reconnection constants
         private const int MAXIMUM_RECONNECTION_ATTEMPTS = 500;
@@ -571,6 +571,12 @@ namespace CharismaSDK
 
                 if (_reconnectionTryCount <= MAXIMUM_RECONNECTION_ATTEMPTS)
                 {
+                    if (IsConnected())
+                    {
+                        Debug.LogError($"RECONNECTION - ALREADY CONNECTED, RETURNING");
+                        yield break;
+                    }
+
                     Debug.LogError($"RECONNECTION TRY - {_reconnectionTryCount}");
                     // Need to set the protocol to secure every time.
                     // Colyseus resets to non-secure after even one failed attempt
