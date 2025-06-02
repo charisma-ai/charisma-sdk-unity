@@ -12,9 +12,10 @@ namespace CharismaSDK
     /// <summary>
     /// Interact with Charisma using this object.
     /// </summary>
-    public class Playthrough
+    public partial class Playthrough
     {
         #region Enums
+
         public enum ConnectionState
         {
             Disconnected,
@@ -22,6 +23,7 @@ namespace CharismaSDK
             Connected,
             Reconnecting
         }
+
         #endregion
 
         #region Static Variables
@@ -33,7 +35,7 @@ namespace CharismaSDK
         private const int MINIMUM_PINGS_TO_CONSIDER_FAILED = 3;
 
         // Reconnection constants
-        private const int MAXIMUM_RECONNECTION_ATTEMPTS = 60;
+        private const int MAXIMUM_RECONNECTION_ATTEMPTS = 120;
 
         #endregion
 
@@ -67,11 +69,17 @@ namespace CharismaSDK
         #region Degelates
 
         public delegate void MessageDelegate(Events.MessageEvent message);
+
         public delegate void StartTypingDelegate(Events.StartTypingEvent message);
+
         public delegate void StopTypingDelegate(Events.StopTypingEvent message);
+
         public delegate void ConnectionStateChangeDelegate(ConnectionState connectionState);
+
         public delegate void SpeechRecognitionResultDelegate(Events.SpeechRecognitionResult result);
+
         public delegate void PingSuccessDelegate();
+
         public delegate void PingFailureDelegate();
 
         #endregion
@@ -138,6 +146,9 @@ namespace CharismaSDK
         private float _reconnectionTryDelay = 5.0f;
 
         private bool _calledByDisconnect;
+        private Coroutine _pingCoroutine;
+        private Coroutine _reconnectionCoroutine;
+
         #endregion
 
         #region Constructors
@@ -146,7 +157,8 @@ namespace CharismaSDK
         /// Interaction with Charisma
         /// </summary>
         /// <param name="token">A valid play-though token.</param>
-        public Playthrough(string token, string playthroughUuid, SpeechOptions speechOptions = default, SpeechRecognitionOptions speechRecognitionOptions = default)
+        public Playthrough(string token, string playthroughUuid, SpeechOptions speechOptions = default,
+            SpeechRecognitionOptions speechRecognitionOptions = default)
         {
             Token = token;
             PlaythroughUuid = playthroughUuid;
@@ -197,7 +209,7 @@ namespace CharismaSDK
         // Disconnect from the current interaction.
         public void Disconnect()
         {
-            if (HasBeenDisconnected())
+            if (IsDisconnected())
             {
                 Logger.Log("Playthrough is already disconnected. Exiting early.");
                 SetConnectionState(ConnectionState.Disconnected);
@@ -206,15 +218,15 @@ namespace CharismaSDK
 
             try
             {
-                _room?.Leave();
-                _room = null;
-
-                _client = null;
-
                 // Disconnected manually set to true.
                 _calledByDisconnect = true;
 
                 SetConnectionState(ConnectionState.Disconnected);
+
+                _room?.Leave();
+                _room = null;
+
+                _client = null;
             }
             catch (Exception e)
             {
@@ -242,9 +254,9 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before starting the interaction");
+                Logger.LogError("Not connected - cannot send 'start' event.");
                 return;
-            };
+            }
 
             var startEvent = new Events.StartEvent(conversationUuid, sceneIndex, startGraphReferenceId, SpeechOptions);
 
@@ -260,9 +272,11 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before resuming the interaction");
+                Logger.LogError("Not connected - cannot send 'resume' event.");
                 return;
-            };
+            }
+
+            ;
 
             var resumeEvent = new Events.ResumeEvent(conversationUuid, SpeechOptions);
 
@@ -278,9 +292,11 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before starting the interaction");
+                Logger.LogError("Not connected - cannot send 'tap' event.");
                 return;
-            };
+            }
+
+            ;
 
             var tapEvent = new Events.TapEvent(conversationUuid, SpeechOptions);
 
@@ -298,9 +314,11 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before starting the interaction");
+                Logger.LogError($"Not connected - cannot send reply text '{text}'.");
                 return;
-            };
+            }
+
+            ;
 
             var replyEvent = new Events.ReplyEvent(conversationUuid, text, SpeechOptions);
 
@@ -317,9 +335,11 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before starting the interaction");
+                Logger.LogError($"Not connected - cannot set action '{action}'.");
                 return;
-            };
+            }
+
+            ;
 
             var actionEvent = new Events.ActionEvent(conversationUuid, action, SpeechOptions);
 
@@ -331,9 +351,11 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before starting the interaction");
+                Logger.LogError("Not connected - cannot send 'pause' event.");
                 return;
-            };
+            }
+
+            ;
 
             Logger.Log("Sending `pause` event");
             _room?.Send("pause");
@@ -343,9 +365,11 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before starting the interaction");
+                Logger.LogError("Not connected - cannot send 'play' event.");
                 return;
-            };
+            }
+
+            ;
 
             Logger.Log("Sending `play` event");
             _room?.Send("play");
@@ -355,13 +379,17 @@ namespace CharismaSDK
         {
             if (!IsConnected())
             {
-                Logger.LogError("Socket not open. Connect before starting the interaction");
+                Logger.LogError("Not connected - cannot start speech recognition.");
                 return;
-            };
+            }
+
+            ;
 
             if (_microphone == null)
             {
-                _microphone = gameObject.TryGetComponent(out MicrophoneBase mic) ? mic : gameObject.AddComponent<MicrophoneBase>();
+                _microphone = gameObject.TryGetComponent(out MicrophoneBase mic)
+                    ? mic
+                    : gameObject.AddComponent<MicrophoneBase>();
             }
 
             _microphone.Initialize(microphoneId, _speechRecognitionOptions.SampleRate);
@@ -384,6 +412,14 @@ namespace CharismaSDK
 
         public void StopSpeechRecognition()
         {
+            if (!IsConnected())
+            {
+                Logger.LogError("Not connected - cannot stop speech recognition.");
+                return;
+            }
+
+            ;
+
             _room?.Send("speech-recognition-stop");
             _microphone.MicrophoneCallback = null;
             _microphone.StopListening();
@@ -392,6 +428,7 @@ namespace CharismaSDK
         #endregion
 
         #region Private functions
+
         private void SetConnectionState(ConnectionState connectionState)
         {
             if (_connectionState != connectionState)
@@ -407,7 +444,7 @@ namespace CharismaSDK
             return _connectionState == ConnectionState.Connected;
         }
 
-        private bool HasBeenDisconnected()
+        private bool IsDisconnected()
         {
             return _connectionState == ConnectionState.Disconnected;
         }
@@ -434,81 +471,7 @@ namespace CharismaSDK
             );
 
             _room = room;
-            AssignRoomCallbacks();
-        }
-
-        private void AssignRoomCallbacks()
-        {
-            _room.OnJoin += () =>
-            {
-                Logger.Log("Successfully connected to playthrough");
-            };
-
-
-            _room.OnError += (code, message) =>
-            {
-                Logger.LogError($"There was an error connecting to the playthrough. Code: {code}. Message: {message}");
-            };
-
-            _room.OnMessage<string>("status", (status) =>
-            {
-                Logger.Log($"Received `status` event: {JsonConvert.SerializeObject(status)}");
-                if (status == "ready")
-                {
-                    Logger.Log("Ready to begin play");
-                    OnReady();
-                }
-            });
-
-            _room.OnMessage<Events.MessageEvent>("message", (message) =>
-            {
-                Logger.Log($"Received `message` event: {JsonConvert.SerializeObject(message)}");
-                OnMessage?.Invoke(message);
-            });
-
-            _room.OnMessage<Events.StartTypingEvent>("start-typing", (message) =>
-            {
-                Logger.Log($"Received `start-typing` event: {JsonConvert.SerializeObject(message)}");
-                OnStartTyping?.Invoke(message);
-            });
-
-            _room.OnMessage<Events.StopTypingEvent>("stop-typing", (message) =>
-            {
-                Logger.Log($"Received `stop-typing` event: {JsonConvert.SerializeObject(message)}");
-                OnStopTyping?.Invoke(message);
-            });
-
-            _room.OnMessage<Events.SpeechRecognitionResult>("speech-recognition-result", (message) =>
-            {
-                Logger.Log($"Received `speech-recognition-result` event: {JsonConvert.SerializeObject(message)}");
-                OnSpeechRecognitionResult?.Invoke(message);
-            });
-
-            _room.OnMessage<Events.ProblemEvent>("problem", (message) =>
-            {
-                Logger.LogWarning($"Received `problem` event: {JsonConvert.SerializeObject(message)}");
-            });
-
-            _room.OnMessage<string>("pong", (message) =>
-            {
-                _pingCount = 0;
-                OnPingSuccess?.Invoke();
-                SetConnectionState(ConnectionState.Connected);
-            });
-
-            _room.OnLeave += (code) =>
-            {
-                Logger.Log($"Connection closed.");
-
-                if (_calledByDisconnect)
-                {
-                    return;
-                }
-
-                Logger.Log($"Attempting to reconnect to Playthrough.");
-
-                MainThreadDispatcher.Instance.Consume(TryToReconnect());
-            };
+            AssignRoomCallbacks(_room);
         }
 
         private void OnReady()
@@ -520,7 +483,10 @@ namespace CharismaSDK
             _calledByDisconnect = false;
             _reconnectionTryCount = 0;
 
-            Task.Run(FirePing);
+            if (_pingCoroutine == null)
+            {
+                _pingCoroutine = MainThreadDispatcher.Instance.Consume(FirePing());
+            }
         }
 
         private IEnumerator TryToReconnect()
@@ -528,19 +494,23 @@ namespace CharismaSDK
             if (_calledByDisconnect)
             {
                 SetConnectionState(ConnectionState.Disconnected);
+                Logger.LogError($"Called by manual disconnect - cancelling reconnection attempt.");
                 yield break;
             }
 
             // cannot allow multiple reconnection coroutines to run concurrently
             if (IsReconnecting())
             {
+                Logger.LogError($"Already reconnecting - cancelling reconnection attempt.");
                 yield break;
             }
 
-            Logger.Log("Trying to reconnect.");
             SetConnectionState(ConnectionState.Reconnecting);
 
-            MainThreadDispatcher.Instance.Consume(Reconnect());
+            if (_reconnectionCoroutine == null)
+            {
+                _reconnectionCoroutine = MainThreadDispatcher.Instance.Consume(Reconnect());
+            }
         }
 
         private bool IsReconnecting()
@@ -550,108 +520,119 @@ namespace CharismaSDK
 
         private IEnumerator Reconnect()
         {
+            Logger.Log("<color=cyan>Starting reconnection flow</color>");
+
             bool roomExpired = false;
             ColyseusRoom<object> room = null;
+            _reconnectionTryCount = 0;
 
-            while (room == null)
+            while (_reconnectionTryCount <= MAXIMUM_RECONNECTION_ATTEMPTS)
             {
-                _reconnectionTryCount++;
-
-                if (_reconnectionTryCount <= MAXIMUM_RECONNECTION_ATTEMPTS)
+                if (IsConnected())
                 {
-                    // Need to set the protocol to secure every time.
-                    // Colyseus resets to non-secure after even one failed attempt
-                    _client.Settings.useSecureProtocol = true;
+                    Logger.Log("Already connected - ending reconnection attempts.");
+                    yield break;
+                }
 
-                    Task<ColyseusRoom<object>> reconnectionTask;
-                    if (roomExpired)
-                    {
-                        // If the room has expired, attempt to create a new one.
-                        reconnectionTask = _client.JoinOrCreate("chat", _roomOptions);
-                    }
-                    else
-                    {
-                        // Try just reconnecting otherwise.
-                        reconnectionTask = _client.Reconnect(_room.Id, _room.SessionId);
-                    }
+                Logger.LogError($"<color=cyan>Reconnection attempt {_reconnectionTryCount}.</color>");
 
-                    yield return new WaitUntil(() => reconnectionTask.IsCompleted);
+                // Need to set the protocol to secure every time.
+                // Colyseus resets to non-secure after even one failed attempt
+                _client.Settings.useSecureProtocol = true;
 
-                    if (reconnectionTask.Status != TaskStatus.Faulted)
-                    {
-                        room = reconnectionTask.Result;
-
-                        // If the room is successfully generated and no error is catched
-                        // code will progress here and re-assign the _room variable.
-                        _room = room;
-                        AssignRoomCallbacks();
-                        SetConnectionState(ConnectionState.Connected);
-                        Logger.Log($"Successfully reconnected.");
-                        yield break;
-                    }
-                    else
-                    {
-                        var exception = reconnectionTask.Exception;
-
-                        Logger.LogWarning($"Failed to reconnect - exception: {exception.Message}");
-
-                        // listen for "Room */ not found" error messages
-                        // must re-create room as a result, as room has expired
-                        if (!roomExpired)
-                        {
-                            var indexOfRoom = exception.Message.IndexOf("room");
-                            var indexOfNotFound = exception.Message.IndexOf("not found");
-                            if (indexOfRoom != -1 && indexOfRoom < indexOfNotFound)
-                            {
-                                roomExpired = true;
-                            }
-                        }
-                    }
-
-                    float timePassed = 0f;
-                    while (timePassed < _reconnectionTryDelay)
-                    {
-                        yield return new WaitForEndOfFrame();
-                        timePassed += Time.deltaTime;
-                    }
+                Task<ColyseusRoom<object>> reconnectionTask;
+                if (roomExpired)
+                {
+                    // If the room has expired, attempt to create a new one.
+                    reconnectionTask = _client.JoinOrCreate("chat", _roomOptions);
                 }
                 else
                 {
-                    Logger.Log("Reached reconnection attempt limit - disconnecting...");
-                    SetConnectionState(ConnectionState.Disconnected);
-                    break;
+                    // Try just reconnecting otherwise.
+                    reconnectionTask = _client.Reconnect(_room.Id, _room.SessionId);
                 }
+
+                yield return new WaitUntil(() => reconnectionTask.IsCompleted);
+
+                if (reconnectionTask.Status != TaskStatus.Faulted)
+                {
+                    room = reconnectionTask.Result;
+
+                    // If the room is successfully generated and no error is catched
+                    // code will progress here and re-assign the _room variable.
+                    if (roomExpired)
+                    {
+                        _room?.Leave();
+                    }
+
+                    _room = room;
+                    AssignRoomCallbacks(_room);
+                    SetConnectionState(ConnectionState.Connected);
+                    _pingCount = 0;
+                    Logger.Log($"Successfully reconnected.");
+                    yield break;
+                }
+                else
+                {
+                    var exception = reconnectionTask.Exception;
+
+                    Logger.LogWarning($"Failed to reconnect - exception: {exception.Message}");
+
+                    // listen for "Room */ not found" error messages
+                    // must re-create room as a result, as room has expired
+                    if (!roomExpired)
+                    {
+                        var indexOfRoom = exception.Message.IndexOf("room");
+                        var indexOfNotFound = exception.Message.IndexOf("not found");
+                        var sessionExpired = exception.Message.Contains("session expired");
+                        if ((indexOfRoom != -1 && indexOfRoom < indexOfNotFound) || sessionExpired)
+                        {
+                            roomExpired = true;
+                        }
+                    }
+                }
+
+                float timePassed = 0f;
+                while (timePassed < _reconnectionTryDelay)
+                {
+                    yield return new WaitForEndOfFrame();
+                    timePassed += Time.deltaTime;
+                }
+
+                _reconnectionTryCount++;
             }
 
+            Logger.Log("Reached reconnection attempt limit - disconnecting...");
+            SetConnectionState(ConnectionState.Disconnected);
         }
 
-        private void FirePing()
+        private IEnumerator FirePing()
         {
-            if (!IsConnected())
+            while (true)
             {
-                return;
+                var pingWait = new WaitForSeconds(TIME_BETWEEN_PINGS);
+
+                _room?.Send("ping");
+
+                _pingCount++;
+
+                if (_pingCount >= MINIMUM_PINGS_TO_CONSIDER_FAILED)
+                {
+                    Logger.LogWarning($"{_pingCount} pings timed out.");
+
+                    OnPingFailure?.Invoke();
+
+                    if (_connectionState is ConnectionState.Disconnected)
+                    {
+                        Logger.LogError($"Attempting to reconnect via ping routine.");
+                        MainThreadDispatcher.Instance.Consume(TryToReconnect());
+                    }
+                }
+
+                yield return pingWait;
             }
-
-            _room?.Send("ping");
-
-            _pingCount++;
-            if (_pingCount >= MINIMUM_PINGS_TO_CONSIDER_FAILED)
-            {
-                Logger.LogError($"Ping timed out.");
-                SetConnectionState(ConnectionState.Disconnected);
-
-                OnPingFailure?.Invoke();
-                MainThreadDispatcher.Instance.Consume(TryToReconnect());
-                return;
-            }
-
-            // Fire another ping after a delay.
-            Task.Run(async delegate
-            {
-                await Task.Delay(TimeSpan.FromSeconds(TIME_BETWEEN_PINGS));
-                FirePing();
-            });
         }
+
         #endregion
     }
 }
