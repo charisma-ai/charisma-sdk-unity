@@ -24,9 +24,14 @@ namespace CharismaSDK
             }
         }
 
-        public Coroutine Consume(IEnumerator routine)
+        public Coroutine StartCoroutine(IEnumerator routine)
         {
             return _monoComponent.StartCoroutine(routine);
+        }
+
+        public void StopCoroutine(Coroutine routine)
+        {
+            _monoComponent.StopCoroutine(routine);
         }
 
         public void Consume(Action action)

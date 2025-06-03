@@ -276,8 +276,6 @@ namespace CharismaSDK
                 return;
             }
 
-            ;
-
             var resumeEvent = new Events.ResumeEvent(conversationUuid, SpeechOptions);
 
             Logger.Log($"Sending `resume` event: {JsonConvert.SerializeObject(resumeEvent)}");
@@ -295,8 +293,6 @@ namespace CharismaSDK
                 Logger.LogError("Not connected - cannot send 'tap' event.");
                 return;
             }
-
-            ;
 
             var tapEvent = new Events.TapEvent(conversationUuid, SpeechOptions);
 
@@ -318,8 +314,6 @@ namespace CharismaSDK
                 return;
             }
 
-            ;
-
             var replyEvent = new Events.ReplyEvent(conversationUuid, text, SpeechOptions);
 
             Logger.Log($"Sending `reply` event: {JsonConvert.SerializeObject(replyEvent)}");
@@ -339,8 +333,6 @@ namespace CharismaSDK
                 return;
             }
 
-            ;
-
             var actionEvent = new Events.ActionEvent(conversationUuid, action, SpeechOptions);
 
             Logger.Log($"Sending `action` event: {JsonConvert.SerializeObject(actionEvent)}");
@@ -355,8 +347,6 @@ namespace CharismaSDK
                 return;
             }
 
-            ;
-
             Logger.Log("Sending `pause` event");
             _room?.Send("pause");
         }
@@ -369,8 +359,6 @@ namespace CharismaSDK
                 return;
             }
 
-            ;
-
             Logger.Log("Sending `play` event");
             _room?.Send("play");
         }
@@ -382,8 +370,6 @@ namespace CharismaSDK
                 Logger.LogError("Not connected - cannot start speech recognition.");
                 return;
             }
-
-            ;
 
             if (_microphone == null)
             {
@@ -417,8 +403,6 @@ namespace CharismaSDK
                 Logger.LogError("Not connected - cannot stop speech recognition.");
                 return;
             }
-
-            ;
 
             _room?.Send("speech-recognition-stop");
             _microphone.MicrophoneCallback = null;
@@ -485,7 +469,7 @@ namespace CharismaSDK
 
             if (_pingCoroutine == null)
             {
-                _pingCoroutine = MainThreadDispatcher.Instance.Consume(FirePing());
+                _pingCoroutine = MainThreadDispatcher.Instance.StartCoroutine(FirePing());
             }
         }
 
@@ -507,10 +491,12 @@ namespace CharismaSDK
 
             SetConnectionState(ConnectionState.Reconnecting);
 
-            if (_reconnectionCoroutine == null)
+            if (_reconnectionCoroutine != null)
             {
-                _reconnectionCoroutine = MainThreadDispatcher.Instance.Consume(Reconnect());
+                MainThreadDispatcher.Instance.StopCoroutine(_reconnectionCoroutine);
             }
+
+            _reconnectionCoroutine = MainThreadDispatcher.Instance.StartCoroutine(Reconnect());
         }
 
         private bool IsReconnecting()
@@ -530,7 +516,7 @@ namespace CharismaSDK
             {
                 if (IsConnected())
                 {
-                    Logger.Log("Already connected - ending reconnection attempts.");
+                    Logger.Log("<color=cyan>Already connected - ending reconnection attempts.</color>");
                     yield break;
                 }
 
@@ -569,14 +555,14 @@ namespace CharismaSDK
                     AssignRoomCallbacks(_room);
                     SetConnectionState(ConnectionState.Connected);
                     _pingCount = 0;
-                    Logger.Log($"Successfully reconnected.");
+                    Logger.Log($"<color=cyan>Successfully reconnected.</color>");
                     yield break;
                 }
                 else
                 {
                     var exception = reconnectionTask.Exception;
 
-                    Logger.LogWarning($"Failed to reconnect - exception: {exception.Message}");
+                    Logger.LogWarning($"<color=cyan>Failed to reconnect - exception: {exception.Message}</color>");
 
                     // listen for "Room */ not found" error messages
                     // must re-create room as a result, as room has expired
@@ -602,7 +588,7 @@ namespace CharismaSDK
                 _reconnectionTryCount++;
             }
 
-            Logger.Log("Reached reconnection attempt limit - disconnecting...");
+            Logger.Log("<color=cyan>Reached reconnection attempt limit - disconnecting...</color>");
             SetConnectionState(ConnectionState.Disconnected);
         }
 
@@ -625,7 +611,7 @@ namespace CharismaSDK
                     if (_connectionState is ConnectionState.Disconnected)
                     {
                         Logger.LogError($"Attempting to reconnect via ping routine.");
-                        MainThreadDispatcher.Instance.Consume(TryToReconnect());
+                        MainThreadDispatcher.Instance.StartCoroutine(TryToReconnect());
                     }
                 }
 

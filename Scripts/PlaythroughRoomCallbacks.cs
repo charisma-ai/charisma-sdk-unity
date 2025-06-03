@@ -97,7 +97,7 @@ namespace CharismaSDK
 
         private void OnRoomLeave(int code)
         {
-            Logger.Log("Connection closed.");
+            Logger.Log($"Connection closed, code {code}.");
 
             if (_calledByDisconnect)
             {
@@ -105,7 +105,7 @@ namespace CharismaSDK
             }
 
             Logger.Log("Attempting to reconnect to Playthrough.");
-            MainThreadDispatcher.Instance.Consume(TryToReconnect());
+            MainThreadDispatcher.Instance.StartCoroutine(TryToReconnect());
         }
     }
 }

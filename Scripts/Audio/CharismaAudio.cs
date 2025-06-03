@@ -27,7 +27,7 @@ namespace CharismaSDK.Audio
                 throw new NullReferenceException("There was no audio data to generate from. Check your audio settings.");
             }
 
-            MainThreadDispatcher.Instance.Consume(GenerateAudio(encoding, bytes, onAudioGenerated));
+            MainThreadDispatcher.Instance.StartCoroutine(GenerateAudio(encoding, bytes, onAudioGenerated));
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace CharismaSDK.Audio
         /// <exception cref="NotImplementedException"></exception>
         public static void GetAudioClip(string encoding, string url, Action<AudioClip> onAudioGenerated)
         {
-            MainThreadDispatcher.Instance.Consume(GenerateAudio(encoding, url, onAudioGenerated));
+            MainThreadDispatcher.Instance.StartCoroutine(GenerateAudio(encoding, url, onAudioGenerated));
         }
 
         private static AudioType GetAudioType(string encoding)
