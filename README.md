@@ -1,6 +1,6 @@
 # Charisma SDK for Unity
 
-This Unity plugin is verified to work with projects using Unity versions up to `6000.1`. If you find the plugin also works in another version, feel free to submit a pull request to update this!
+This Unity plugin is verified to work with projects using Unity versions up to `2022.2` and above. If you find the plugin also works in another version, feel free to submit a pull request to update this!
 
 If you have any questions or need a hand, please reach out to us at [hello@charisma.ai](mailto:hello@charisma.ai)!
 
