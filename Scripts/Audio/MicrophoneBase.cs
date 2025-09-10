@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace CharismaSDK.Audio
 {
@@ -14,6 +15,8 @@ namespace CharismaSDK.Audio
 
         public delegate void MicCallbackDelegate(byte[] buf);
         public MicCallbackDelegate MicrophoneCallback;
+
+        public bool EnforceLittleEndianByteOutput = true;
 
         public void Initialize(int microphoneId, int sampleRate = 16000)
         {

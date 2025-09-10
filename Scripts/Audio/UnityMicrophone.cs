@@ -43,10 +43,14 @@ namespace CharismaSDK.Audio
             {
                 short sample = (short)(floatBuffer[i] * NORMALIZED_FLOAT_TO_16BIT_CONVERSIONFACTOR);
                 byte[] bytes = BitConverter.GetBytes(sample);
+
+                // Ensure bytes are in little endian format
+                if (EnforceLittleEndianByteOutput && !BitConverter.IsLittleEndian)
+                    Array.Reverse(bytes);
+
                 byteBuffer[i * 2] = bytes[0];
                 byteBuffer[i * 2 + 1] = bytes[1];
             }
-
 
             if (MicrophoneCallback != null)
             {

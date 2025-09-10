@@ -28,6 +28,25 @@ namespace CharismaSDK.Events
 
     [Preserve]
     [Serializable]
+    public class SpeechRecognitionErrorEvent
+    {
+        public string message;
+        public Dictionary<string, object> errorDetails;
+        public string errorOccurredWhen;
+    }
+
+    [Preserve]
+    [Serializable]
+    public class SpeechRecognitionStartedEvent
+    {
+        public string id;
+        public string playerSessionId;
+        public object parameters;
+        public string startedAt;
+    }
+
+    [Preserve]
+    [Serializable]
     public class SpeechRecognitionResult
     {
         public bool speechFinal;

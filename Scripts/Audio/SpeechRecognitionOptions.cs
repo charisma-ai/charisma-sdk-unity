@@ -11,7 +11,8 @@ namespace CharismaSDK.Audio
             Unified,
             Google,
             Aws,
-            Deepgram
+            Deepgram,
+            AssemblyAi
         }
 
         public string Service
@@ -28,6 +29,8 @@ namespace CharismaSDK.Audio
                         return "unified:aws";
                     case SpeechRecognitionService.Deepgram:
                         return "unified:deepgram";
+                    case SpeechRecognitionService.AssemblyAi:
+                        return "unified:assemblyai";
                     default:
                         Logger.LogError("Unrecognised SpeechRecognitionService");
                         return null;

@@ -6,6 +6,7 @@ using CharismaSDK.Audio;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Collections;
+using UnityEngine.Scripting;
 
 namespace CharismaSDK
 {
@@ -32,12 +33,14 @@ namespace CharismaSDK
             room.OnLeave += OnRoomLeave;
             room.OnMessage<string>("status", OnStatusMessageReceived);
             room.OnMessage<Events.MessageEvent>("message", OnMessageReceived);
+            room.OnMessage<string>("player-session-id", OnPlayerSessionIdReceived);
             room.OnMessage<Events.StartTypingEvent>("start-typing", OnStartTypingReceived);
             room.OnMessage<Events.StopTypingEvent>("stop-typing", OnStopTypingReceived);
             room.OnMessage<Events.SpeechRecognitionResult>("speech-recognition-result", OnSpeechRecognitionResultReceived);
+            room.OnMessage<Events.SpeechRecognitionStartedEvent>("speech-recognition-started", OnSpeechRecognitionStartEvent);
+            room.OnMessage<Events.SpeechRecognitionErrorEvent>("speech-recognition-error", OnSpeechRecognitionErrorReceived);
             room.OnMessage<Events.ProblemEvent>("problem", OnProblemReceived);
             room.OnMessage<string>("pong", OnPongReceived);
-
         }
 
         private void OnRoomJoin()
@@ -66,6 +69,11 @@ namespace CharismaSDK
             OnMessage?.Invoke(message);
         }
 
+        private void OnPlayerSessionIdReceived(string playerSessionId)
+        {
+            Logger.Log($"Received `player-session-id` event: {playerSessionId}");
+        }
+
         private void OnStartTypingReceived(Events.StartTypingEvent message)
         {
             Logger.Log($"Received `start-typing` event: {JsonConvert.SerializeObject(message)}");
@@ -82,6 +90,16 @@ namespace CharismaSDK
         {
             Logger.Log($"Received `speech-recognition-result` event: {JsonConvert.SerializeObject(message)}");
             OnSpeechRecognitionResult?.Invoke(message);
+        }
+
+        private void OnSpeechRecognitionStartEvent(Events.SpeechRecognitionStartedEvent message)
+        {
+            Logger.Log($"Received `speech-recognition-start` event: {JsonConvert.SerializeObject(message)}");
+        }
+
+        private void OnSpeechRecognitionErrorReceived(Events.SpeechRecognitionErrorEvent message)
+        {
+            Logger.Log($"Received `speech-recognition-error` event: {JsonConvert.SerializeObject(message)}");
         }
 
         private void OnProblemReceived(Events.ProblemEvent message)

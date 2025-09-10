@@ -133,6 +133,20 @@ public abstract class PlaythroughInstanceBase : MonoBehaviour
     }
 
     /// <summary>
+    /// Sends a TAP event to the current playthrough
+    /// </summary>
+    public void Tap()
+    {
+        if (!IsPlaythroughLoaded())
+        {
+            Logger.Log("Playthrough was not loaded. Please call LoadPlaythrough() first.");
+            return;
+        }
+
+        _playthrough.Tap(_conversationUuid);
+    }
+
+    /// <summary>
     /// Sets pause/play status for the current running playthrough on the backend.
     /// Charisma graph will not continue to play until the playthrough is unpaused
     /// </summary>
@@ -160,8 +174,13 @@ public abstract class PlaythroughInstanceBase : MonoBehaviour
         return _playthrough != default;
     }
 
-    private void OnApplicationQuit()
+    protected virtual void OnApplicationQuit()
     {
+        if (_playthrough != default)
+        {
+            _playthrough.OnMessage -= OnMessageReceived;
+        }
+
         MainThreadDispatcher.Instance.Dispose();
     }
 }

@@ -1,8 +1,11 @@
+using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using CharismaSDK;
 using CharismaSDK.Events;
 using CharismaSDK.Audio;
+using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using Logger = CharismaSDK.Logger;
 
@@ -15,20 +18,65 @@ public class ExamplePlaythroughInstance : PlaythroughInstanceBase
     [SerializeField] private AudioSource _audioSource;
     
     [Header(header: "UI")] 
+    [SerializeField] private Text _charismaChatText;
     [SerializeField] private Button _sendButton;
-    [SerializeField] private InputField _inputField;
-    [SerializeField] private Text _textField;
-
+    [SerializeField] private Button _micButton;
+    [SerializeField] private Button _tapButton;
+    [SerializeField] private InputField _actionField;
+    [SerializeField] private Button _sendActionButton;
+    [SerializeField] private InputField _memoryKeyField;
+    [SerializeField] private InputField _memoryValueField;
+    [SerializeField] private Button _setMemoryButton;
+    [SerializeField] private InputField _chatInputField;
     [SerializeField] private ConnectionStateDisplay _connectionStateDisplay;
+
+    private List<string> _chatMessages = new List<string>(); 
+    
+    // STT
+    private List<string> _recognizedSpeechTextList = new List<string>();
+    private string _currentRecognizedText;
+    
+    private string CurrentRecognizedText
+    {
+        get
+        {
+            var text = new StringBuilder();
+
+            foreach (var speechLine in _recognizedSpeechTextList)
+            {
+                text.Append(speechLine + " ");
+            }
+
+            text.Append(_currentRecognizedText);
+
+            return text.ToString();
+        }
+    }
     
     protected override void Start()
     {
         base.Start();
         
         LoadPlaythrough();
+        
+        _sendButton.onClick.AddListener(SendPlayerMessage);
+        _tapButton.onClick.AddListener(Tap);
+        _sendActionButton.onClick.AddListener(SetAction);
+        _setMemoryButton.onClick.AddListener(SetMemory);
+        
+        // Mic button handled with unity pointer events directly to get up/down states
+        AddEvent(_micButton.gameObject, EventTriggerType.PointerDown, OnMicButtonDown);
+        AddEvent(_micButton.gameObject, EventTriggerType.PointerUp, OnMicButtonUp);
+    }
 
-        // Bind the SendPlayerMessage function to the UI button.
-        _sendButton.onClick.AddListener(call: SendPlayerMessage);
+    private void OnMicButtonDown(BaseEventData obj)
+    {
+        SetPlaythroughToListening(true);
+    }
+    
+    private void OnMicButtonUp(BaseEventData obj)
+    {
+        SetPlaythroughToListening(false);
     }
 
     private void Update()
@@ -39,27 +87,60 @@ public class ExamplePlaythroughInstance : PlaythroughInstanceBase
         }
     }
     
-    private void OnApplicationQuit()
+    private void AddEvent(GameObject obj, EventTriggerType type, System.Action<BaseEventData> callback)
     {
+        EventTrigger trigger = obj.GetComponent<EventTrigger>();
+        if (trigger == null) trigger = obj.AddComponent<EventTrigger>();
+
+        var entry = new EventTrigger.Entry { eventID = type };
+        entry.callback.AddListener(callback.Invoke);
+        trigger.triggers.Add(entry);
+    }
+    
+    protected override void OnApplicationQuit()
+    {
+        base.OnApplicationQuit();
+        
         if (_playthrough != default)
         {
-            _playthrough.OnMessage -= OnMessageReceived;
-            
+            _playthrough.OnSpeechRecognitionResult -= OnSpeechRecognitionResult;
             _playthrough.Disconnect();
         }
     }
     
     public void SendPlayerMessage()
     {
-        if (string.IsNullOrEmpty(value: _inputField.text))
+        if (string.IsNullOrEmpty(value: _chatInputField.text))
         {
             return;
         }
 
+        AddChatMesssage($"Player: {_chatInputField.text}");
+        
         // Send the text of our input field to Charisma.
-        _playthrough.Reply(conversationUuid: _conversationUuid, text: _inputField.text);
+        _playthrough.Reply(_conversationUuid, _chatInputField.text);
+        _chatInputField.text = string.Empty;
+    }
 
-        _inputField.text = string.Empty;
+    public void Tap()
+    {
+        base.Tap();
+        AddChatMesssage("TAP");
+    }
+    
+    public void SetAction()
+    {
+        var action = _actionField.text;
+        base.SetAction(action);
+        AddChatMesssage($"SENT ACTION: {action}");
+    }
+
+    public void SetMemory()
+    {
+        var key = _memoryKeyField.text;
+        var value = _memoryValueField.text;
+        base.SetMemory(key,value);
+        AddChatMesssage($"SET MEMORY: {key} | {value}");
     }
 
     protected override void OnPlaythroughLoaded(CreatePlaythroughTokenResponse tokenResponse, string conversationUuid)
@@ -68,6 +149,8 @@ public class ExamplePlaythroughInstance : PlaythroughInstanceBase
         {
             _playthrough.OnConnectionStateChange += _connectionStateDisplay.SetResultState;
         }
+        
+        _playthrough.OnSpeechRecognitionResult += OnSpeechRecognitionResult;
 
         StartPlaythrough();
     }
@@ -100,6 +183,58 @@ public class ExamplePlaythroughInstance : PlaythroughInstanceBase
                 }));
         }
 
-        _textField.text = ($"{message.message.character?.name}: {message.message?.text}");
+        var tapContinueStatus = message.tapToContinue ? "(TAP TO CONTINUE)" : "";
+        AddChatMesssage($"{message.message.character?.name}: {message.message?.text} {tapContinueStatus}");
+    }
+    
+    private void OnSpeechRecognitionResult(SpeechRecognitionResult message)
+    {
+        _currentRecognizedText = message.text;
+
+        if (message.isFinal)
+        {
+            _recognizedSpeechTextList.Add(_currentRecognizedText);
+            _currentRecognizedText = "";
+        }
+
+        _chatInputField.text = CurrentRecognizedText;
+    }
+
+    private void SetPlaythroughToListening(bool listening)
+    {
+        if (listening)
+        {
+            _recognizedSpeechTextList.Clear();
+            _playthrough.StartSpeechRecognition(this.gameObject);
+        }
+        else
+        {
+            _playthrough.StopSpeechRecognition();
+        }
+    }
+
+    private void AddChatMesssage(string message)
+    {
+        _chatMessages.Add(message);
+
+        if (_chatMessages.Count > 20)
+        {
+            _chatMessages.RemoveAt(0);
+        }
+        
+        UpdateChat();
+    }
+
+    private void UpdateChat()
+    {
+        var chatOutputString = "";
+        foreach (var message in _chatMessages)
+        {
+            chatOutputString += $"{message}\n";
+        }
+        
+        // Trim last "\n" out of the string for improved formatting
+        var trimmedOutput = chatOutputString.TrimEnd('\n');
+        _charismaChatText.text = trimmedOutput;
     }
 }
